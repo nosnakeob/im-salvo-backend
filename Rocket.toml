@@ -1,0 +1,8 @@
+[global]
+port = 8080
+
+[debug]
+port = 8081
+
+[release]
+port = 8082
