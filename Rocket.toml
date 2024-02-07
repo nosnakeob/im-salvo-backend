@@ -1,8 +1,10 @@
-[global]
-port = 8080
+#[global]
+#port = 8080
 
-[debug]
-port = 8081
+[default]
+port = 8000
+secret_key = "secret"
 
-[release]
-port = 8082
+#[debug]
+
+#[release]

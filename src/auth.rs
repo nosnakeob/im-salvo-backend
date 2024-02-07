@@ -1,17 +1,16 @@
-// use once_cell::sync::Lazy;
+use once_cell::sync::Lazy;
 use permit_micro::loggedin;
-// use rocket::Config;
+use rocket::Config;
 use rocket::http::Status;
 use rocket::serde::json::Value;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::serde::json::{Json, json};
 use rocket_jwt::jwt;
 
-// static KEY: Lazy<String> = Lazy::new(|| {
-//     let secret = Config::figment().find_value(Config::SECRET_KEY).unwrap();
-//     secret.as_str().unwrap().to_owned()
-// });
-static SECRET_KEY: &str = "secret";
+static SECRET_KEY: Lazy<String> = Lazy::new(|| {
+    let secret = Config::figment().find_value(Config::SECRET_KEY).unwrap();
+    secret.as_str().unwrap().to_owned()
+});
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {

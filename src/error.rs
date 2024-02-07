@@ -4,7 +4,7 @@ use rocket::http::Status;
 use rocket::Request;
 
 #[catch(default)]
-pub async fn default_catcher(status: Status, req: &Request<'_>) -> Value {
+pub async fn default_catcher(status: Status, _: &Request<'_>) -> Value {
     json!({
         "code": status.code,
         "msg": status.reason()
