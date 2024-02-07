@@ -1,5 +1,5 @@
 // use once_cell::sync::Lazy;
-// use permit_micro::logged;
+use permit_micro::loggedin;
 // use rocket::Config;
 use rocket::http::Status;
 use rocket::serde::json::Value;
@@ -48,9 +48,9 @@ pub async fn login(mut user: Json<User>) -> Value {
     })
 }
 
-// #[logged]
+#[loggedin]
 #[get("/check")]
-pub async fn check(_user_claim: UserClaim) -> Value {
+pub async fn check() -> Value {
     json!({
         "code": Status::Ok.code,
         "msg": "success"
