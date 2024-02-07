@@ -3,8 +3,7 @@ mod error;
 #[macro_use]
 extern crate rocket;
 
-use error::{not_found, unauthorized};
-
+use error::default_catcher;
 
 #[get("/")]
 async fn index() -> &'static str {
@@ -16,5 +15,5 @@ async fn index() -> &'static str {
 fn rocket() -> _ {
     rocket::build()
         .mount("/", routes![index])
-        .register("/", catchers![not_found, unauthorized])
+        .register("/", catchers![default_catcher])
 }
