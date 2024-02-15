@@ -62,7 +62,7 @@ async fn rocket() -> _ {
     rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
     rocket::build()
-        .register("/", catchers![default_catcher])
         .mount("/", routes![index,register, login, check])
+        .register("/", catchers![default_catcher,not_authorized])
         .manage(rb)
 }
