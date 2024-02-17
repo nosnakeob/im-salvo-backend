@@ -14,6 +14,7 @@ use auth::{login, check, register};
 use error::{default_catcher, not_authorized};
 use rbatis::rbdc::db::ExecResult;
 use std::sync::Arc;
+use rocket::Config;
 
 #[derive(Debug)]
 pub struct ReturningIdPlugin {}
@@ -57,7 +58,8 @@ async fn index() -> &'static str {
 async fn rocket() -> _ {
     let rb = RBatis::new();
 
-    rb.link(PgDriver {}, "postgres://postgres:135246@localhost:5432/le_rocket").await.unwrap();
+    let sql_addr = Config::figment().find_value("sql_addr").unwrap().as_str().unwrap().to_string();
+    rb.link(PgDriver {}, sql_addr.as_str()).await.unwrap();
 
     rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
