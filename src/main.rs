@@ -1,20 +1,25 @@
-mod auth;
-mod error;
-
+extern crate rbatis;
 #[macro_use]
 extern crate rocket;
-extern crate rbatis;
 
+use std::sync::Arc;
+
+use rbatis::{Error, RBatis};
 use rbatis::executor::Executor;
 use rbatis::intercept::{Intercept, ResultType};
-use rbatis::{Error, RBatis};
+use rbatis::rbdc::db::ExecResult;
 use rbdc_pg::PgDriver;
 use rbs::Value;
-use auth::{login, check, register};
-use error::{default_catcher, not_authorized};
-use rbatis::rbdc::db::ExecResult;
-use std::sync::Arc;
 use rocket::Config;
+use serde_json::json;
+
+use auth::{check, login, register};
+use domain::R;
+use error::{default_catcher, not_authorized};
+
+mod auth;
+mod error;
+mod domain;
 
 #[derive(Debug)]
 pub struct ReturningIdPlugin {}
@@ -49,8 +54,8 @@ impl Intercept for ReturningIdPlugin {
 }
 
 #[get("/")]
-async fn index() -> &'static str {
-    "web"
+async fn index() -> R {
+    R::ok(None)
 }
 
 
@@ -68,3 +73,4 @@ async fn rocket() -> _ {
         .register("/", catchers![default_catcher,not_authorized])
         .manage(rb)
 }
+

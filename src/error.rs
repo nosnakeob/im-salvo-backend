@@ -1,20 +1,14 @@
-use rocket::serde::json::serde_json::json;
-use rocket::serde::json::Value;
 use rocket::http::Status;
 use rocket::Request;
 
+use crate::domain::R;
+
 #[catch(default)]
-pub async fn default_catcher(status: Status, _: &Request<'_>) -> Value {
-    json!({
-        "code": status,
-        "msg": status.reason()
-    })
+pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
+    R::new(status, status.reason(), None)
 }
 
 #[catch(401)]
-pub async fn not_authorized() -> Value {
-    json!({
-        "code": Status::Unauthorized,
-        "msg": "haven't login"
-    })
+pub async fn not_authorized() -> R {
+    R::new(Status::Unauthorized, Some("haven't login"), None)
 }
