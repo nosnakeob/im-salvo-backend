@@ -1,37 +1,11 @@
-use once_cell::sync::Lazy;
 use permit_micro::loggedin;
-use rbatis::{crud, RBatis};
-use rocket::{Config, State};
-use rocket::http::Status;
-use rocket::response::status::BadRequest;
-use rocket::serde::{Deserialize, Serialize};
+use rbatis::RBatis;
 use rocket::serde::json::{Json, json};
-use rocket::serde::json::Value;
-use rocket_jwt::jwt;
+use rocket::State;
 
-use crate::domain::R;
-
-static SECRET_KEY: Lazy<String> = Lazy::new(|| {
-    let secret = Config::figment().find_value(Config::SECRET_KEY).unwrap();
-    secret.as_str().unwrap().to_owned()
-});
-
-
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(Clone)]
-pub struct User {
-    id: Option<u32>,
-    username: String,
-    password: String,
-}
-
-crud!(User{},"users");
-
-
-#[jwt(SECRET_KEY, exp = 120)]
-pub struct UserClaim {
-    id: u32,
-}
+use crate::domain::req::R;
+use crate::domain::user::User;
+use crate::framework::jwt::UserClaim;
 
 #[post("/register", data = "<user>")]
 pub async fn register(user: Json<User>, rb: &State<RBatis>) -> R {
@@ -43,15 +17,13 @@ pub async fn register(user: Json<User>, rb: &State<RBatis>) -> R {
                 return R::fail(Some("username exists"));
             }
         }
-        Err(err) => return R::fail(Some(err.to_string()))
+        Err(err) => return R::fail(Some(err.to_string())),
     }
 
 
     match User::insert(rb, &user).await {
         Ok(data) => println!("{:?}", data),
-        Err(err) => {
-            return R::fail(Some(err.to_string()));
-        }
+        Err(err) => return R::fail(Some(err.to_string())),
     };
 
     R::ok(None)
@@ -75,17 +47,19 @@ pub async fn login(login_user: Json<User>, rb: &State<RBatis>) -> R {
             let user_claim = UserClaim {
                 id: user.id.unwrap(),
             };
+
             let token = UserClaim::sign(user_claim);
+            println!("{:?}", UserClaim::decode(token.clone()));
             R::ok(Some(json!({ "token": token })))
         }
         Err(err) => return R::fail(Some(err.to_string()))
     }
 }
 
+
 #[loggedin]
 #[get("/check")]
 pub async fn check() -> R {
     R::ok(None)
 }
-
 

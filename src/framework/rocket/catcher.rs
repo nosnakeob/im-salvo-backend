@@ -1,7 +1,7 @@
 use rocket::http::Status;
 use rocket::Request;
 
-use crate::domain::R;
+use crate::domain::req::R;
 
 #[catch(default)]
 pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
@@ -9,6 +9,6 @@ pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
 }
 
 #[catch(401)]
-pub async fn not_authorized() -> R {
+pub async fn unauthorized() -> R {
     R::new(Status::Unauthorized, Some("haven't login"), None)
 }
