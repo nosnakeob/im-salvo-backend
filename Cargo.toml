@@ -1,3 +1,4 @@
+workspace = { members = ["sql-macro"] }
 [package]
 name = "learn-rocket"
 version = "0.1.0"
@@ -14,5 +15,6 @@ rbs = "4"
 rbatis = "4"
 rbdc-pg = "4"
 
-permit-micro = { path = "permit-micro" }
 serde_json = "1"
+auth-macro = { path = "auth-macro" }
+sql-macro = { path = "sql-macro" }
