@@ -1,9 +1,10 @@
 extern crate proc_macro;
 
-use syn::parse_quote;
 use proc_macro::TokenStream;
+
 use quote::quote;
-use syn::{parse_macro_input, ItemFn};
+use syn::{ItemFn, parse_macro_input};
+use syn::parse_quote;
 
 #[proc_macro_attribute]
 pub fn has_permit(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -52,3 +53,4 @@ pub fn loggedin(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     new_fn.into()
 }
+
