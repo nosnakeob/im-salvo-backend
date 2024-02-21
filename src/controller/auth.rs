@@ -3,7 +3,7 @@ use rocket::serde::json::{Json, json};
 use auth_macro::loggedin;
 use sql_macro::rb_conn;
 
-use crate::domain::req::R;
+use crate::domain::resp::R;
 use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
 
@@ -13,16 +13,16 @@ pub async fn register(user: Json<User>) -> R {
     match User::select_by_column("username", &user.username).await {
         Ok(users) => {
             if !users.is_empty() {
-                return R::fail(Some("username exists"));
+                return R::fail("username exists");
             }
         }
-        Err(err) => return R::fail(Some(err.to_string())),
+        Err(err) => return R::fail(err.to_string()),
     }
 
 
     match User::insert(&user).await {
         Ok(data) => println!("{:?}", data),
-        Err(err) => return R::fail(Some(err.to_string())),
+        Err(err) => return R::fail(err.to_string()),
     };
 
     R::ok(None)
@@ -31,17 +31,16 @@ pub async fn register(user: Json<User>) -> R {
 #[rb_conn]
 #[post("/login", data = "<login_user>")]
 pub async fn login(login_user: Json<User>) -> R {
-
     match User::select_by_column("username", &login_user.username).await {
         Ok(users) => {
             if users.is_empty() {
-                return R::fail(Some("username not exists"));
+                return R::fail("username not exists");
             }
 
             let user = users[0].clone();
 
             if user.password != login_user.password {
-                return R::fail(Some("password error"));
+                return R::fail("password error");
             }
             let user_claim = UserClaim {
                 id: user.id.unwrap(),
@@ -51,7 +50,7 @@ pub async fn login(login_user: Json<User>) -> R {
             println!("{:?}", UserClaim::decode(token.clone()));
             R::ok(Some(json!({ "token": token })))
         }
-        Err(err) => return R::fail(Some(err.to_string()))
+        Err(err) => return R::fail(err.to_string())
     }
 }
 

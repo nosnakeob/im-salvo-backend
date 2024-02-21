@@ -1,12 +1,7 @@
+#[macro_use]
 extern crate rbatis;
 #[macro_use]
 extern crate rocket;
-
-use controller::auth;
-use domain::req::R;
-use framework::rocket::catcher;
-
-use crate::framework::rbatis::init_sql;
 
 mod domain;
 mod common;
