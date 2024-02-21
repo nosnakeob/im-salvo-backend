@@ -1,8 +1,7 @@
-use rbatis::{crud, impl_select};
 use rocket::serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct User {
     pub id: Option<u32>,
     pub username: String,

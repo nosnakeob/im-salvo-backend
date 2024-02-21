@@ -8,6 +8,7 @@ use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
 
 #[rb_conn]
+#[utoipa::path]
 #[post("/register", data = "<user>")]
 pub async fn register(user: Json<User>) -> R {
     match User::select_by_column("username", &user.username).await {
@@ -29,6 +30,7 @@ pub async fn register(user: Json<User>) -> R {
 }
 
 #[rb_conn]
+#[utoipa::path]
 #[post("/login", data = "<login_user>")]
 pub async fn login(login_user: Json<User>) -> R {
     match User::select_by_column("username", &login_user.username).await {
@@ -56,6 +58,7 @@ pub async fn login(login_user: Json<User>) -> R {
 
 
 #[loggedin]
+#[utoipa::path]
 #[get("/check")]
 pub async fn check() -> R {
     R::ok(None)
