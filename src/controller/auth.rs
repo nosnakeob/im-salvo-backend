@@ -49,7 +49,6 @@ pub async fn login(login_user: Json<User>) -> R {
             };
 
             let token = UserClaim::sign(user_claim);
-            println!("{:?}", UserClaim::decode(token.clone()));
             R::ok(Some(json!({ "token": token })))
         }
         Err(err) => return R::fail(err.to_string())
