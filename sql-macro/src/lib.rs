@@ -1,39 +1,48 @@
-extern crate proc_macro;
+#[macro_use]
+extern crate quote;
+#[macro_use]
+extern crate syn;
 
 use proc_macro::TokenStream;
 
-use quote::{quote, ToTokens};
-use regex::{Captures, Regex};
-use syn::{ItemFn, parse_macro_input};
-use syn::parse_quote;
+use syn::{ExprCall, ExprPath, ItemFn};
+use syn::Expr::Path;
+use syn::visit_mut::VisitMut;
+
+struct RbatisConn;
+
+impl VisitMut for RbatisConn {
+    // xxx::xxx
+    fn visit_expr_call_mut(&mut self, call: &mut ExprCall) {
+        if let Path(ExprPath { ref path, .. }) = *call.func {
+            if let Some(ident) = path.segments.last() {
+                let ident_str = ident.ident.to_string();
+                if ["select", "insert", "update"].iter().any(|&x| ident_str.starts_with(x)) {
+                    call.args.insert(0, parse_quote!(rb));
+                }
+            }
+        }
+
+        // eprintln!("visit_expr_call_mut: {:?}", call.to_token_stream().to_string());
+    }
+
+    // xxx.xxx
+    // fn visit_expr_method_call_mut(&mut self, call: &mut ExprMethodCall) {
+    //     eprintln!("visit_expr_method_call_mut: {:?}", call.to_token_stream().to_string());
+    // }
+}
 
 #[proc_macro_attribute]
 pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let mut func = parse_macro_input!(item as ItemFn); // 我们传入的是一个函数，所以要用到ItemFn
+    let mut func = parse_macro_input!(item as ItemFn);
 
-    let func_decl = &mut func.sig; // 函数申明
-    let func_inputs = &mut func_decl.inputs; // 函数输入参数
-    let func_block = &mut func.block;
+    func.sig.inputs.push(parse_quote!(rb: &rocket::State<rbatis::RBatis>));
 
-    // eprintln!("--------------------------");
-    // eprintln!("func_inputs: {:?}", func_inputs);
-    // 加输入参数引入登录请求守护
-    func_inputs.push(parse_quote!(rb: &rocket::State<rbatis::RBatis>));
-    // eprintln!("func_inputs: {:?}", func_inputs);
+    RbatisConn.visit_item_fn_mut(&mut func);
 
-    func_block.stmts.insert(0, parse_quote! {
+    func.block.stmts.insert(0, parse_quote! {
         let rb = &**rb;
     });
-
-    let re = Regex::new(r"(\w+\s*::\s*(select|insert)\w*\()").unwrap();
-    let func_block = func_block.to_token_stream().to_string();
-    // eprintln!("{}", func_block);
-    let new_func_block = re.replace_all(&func_block, |caps: &Captures| {
-        format!("{}rb,", &caps[1])
-    });
-    // eprintln!("{}", new_func_block);
-
-    func.block = syn::parse_str(&new_func_block).unwrap();
 
     // 重新构建函数执行
     let new_fn = quote!( #func );

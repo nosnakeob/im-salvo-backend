@@ -20,7 +20,7 @@ rbatis = "4"
 rbdc-pg = "4"
 
 utoipa = { version = "4", features = ["rocket_extras"] }
-utoipa-swagger-ui = {version = "6",features = ["rocket"]}
+utoipa-swagger-ui = { version = "6", features = ["rocket"] }
 
 auth-macro = { path = "auth-macro" }
 sql-macro = { path = "sql-macro" }

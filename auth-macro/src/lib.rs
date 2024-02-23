@@ -1,9 +1,11 @@
-extern crate proc_macro;
+#[macro_use]
+extern crate quote;
+#[macro_use]
+extern crate syn;
 
 use proc_macro::TokenStream;
 
-use quote::quote;
-use syn::{ItemFn, parse_macro_input};
+use syn::ItemFn;
 use syn::parse_quote;
 
 #[proc_macro_attribute]
