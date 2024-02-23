@@ -6,7 +6,7 @@ use rocket::State;
 use rocket::tokio::try_join;
 use rocket_ws::{Channel, Message, WebSocket};
 
-use crate::ClientMap;
+use crate::framework::websocket::ClientMap;
 
 #[utoipa::path]
 #[get("/connect/<id>")]

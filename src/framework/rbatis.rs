@@ -8,6 +8,7 @@ use rbdc_pg::PgDriver;
 use rbs::Value;
 
 use crate::common::utils::config::get_config;
+use crate::framework::rocket::Server;
 
 #[derive(Debug)]
 struct ReturningIdPlugin {}
@@ -41,13 +42,17 @@ impl Intercept for ReturningIdPlugin {
     }
 }
 
-pub async fn init_sql() -> Result<RBatis, Error> {
-    let rb = RBatis::new();
+impl Server {
+    pub async fn init_sql(mut self) -> Self {
+        let rb = RBatis::new();
 
-    let sql_addr = get_config("sql_addr").unwrap().as_str().unwrap().to_string();
-    rb.link(PgDriver {}, sql_addr.as_str()).await?;
+        let sql_addr = get_config("sql_addr").unwrap().as_str().unwrap().to_string();
+        rb.link(PgDriver {}, sql_addr.as_str()).await.unwrap();
 
-    rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
+        rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
-    Ok(rb)
+        self.inner = self.inner.manage(rb);
+
+        self
+    }
 }
