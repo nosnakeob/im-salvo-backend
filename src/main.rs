@@ -26,8 +26,7 @@ async fn rocket() -> _ {
         .init_sql().await
         .init_doc()
         .init_chat()
-        .init_catcher()
-        .inner
+        .init_catcher().0
         .mount("/", routes![index,auth::register,auth::login,auth::check])
         .mount("/chat", routes![chat::connect])
 }

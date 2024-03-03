@@ -21,7 +21,7 @@ pub struct ApiDoc;
 
 impl Server {
     pub fn init_doc(mut self) -> Self {
-        self.inner = self.inner.mount(
+        self.0 = self.0.mount(
             "/",
             SwaggerUi::new("/swagger-ui/<_..>").url("/api-docs/openapi.json", ApiDoc::openapi()),
         );

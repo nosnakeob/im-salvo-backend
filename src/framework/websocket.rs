@@ -12,7 +12,7 @@ impl Server {
     pub fn init_chat(mut self) -> Self {
         let clients: ClientMap = Mutex::new(HashMap::new());
 
-        self.inner = self.inner.manage(clients);
+        self.0 = self.0.manage(clients);
 
         self
     }

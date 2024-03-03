@@ -16,7 +16,7 @@ pub async fn unauthorized() -> R {
 
 impl Server {
     pub fn init_catcher(mut self) -> Self {
-        self.inner = self.inner.register("/", catchers![default_catcher, unauthorized]);
+        self.0 = self.0.register("/", catchers![default_catcher, unauthorized]);
         self
     }
 }

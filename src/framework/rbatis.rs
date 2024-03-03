@@ -51,7 +51,7 @@ impl Server {
 
         rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
-        self.inner = self.inner.manage(rb);
+        self.0 = self.0.manage(rb);
 
         self
     }
