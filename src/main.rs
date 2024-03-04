@@ -5,19 +5,14 @@ extern crate rocket;
 
 use controller::auth;
 use controller::chat;
-use domain::resp::R;
 
-use crate::framework::rocket::Server;
+use crate::controller::index;
 
 mod domain;
 mod common;
 mod controller;
 mod framework;
-
-#[get("/")]
-async fn index() -> R {
-    R::ok(None)
-}
+mod mapper;
 
 
 #[launch]
