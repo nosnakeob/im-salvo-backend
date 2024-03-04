@@ -8,7 +8,8 @@ use crate::domain::{resp::R, user::User};
 #[derive(OpenApi)]
 #[openapi(
 paths(
-auth::register, auth::login, auth::check
+auth::register, auth::login, auth::check,
+chat::kick, chat::status
 ),
 components(
 schemas(User, R),

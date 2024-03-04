@@ -23,6 +23,6 @@ async fn rocket() -> _ {
         .attach(framework::rocket::catcher::stage())
         .attach(framework::websocket::stage())
         .mount("/", routes![index,auth::register,auth::login,auth::check])
-        .mount("/chat", routes![chat::connect])
+        .mount("/chat", routes![chat::connect,chat::kick,chat::status])
 }
 
