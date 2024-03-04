@@ -1,9 +1,9 @@
+use rocket::fairing::AdHoc;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::controller::auth;
+use crate::controller::*;
 use crate::domain::{resp::R, user::User};
-use crate::framework::rocket::Server;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -19,13 +19,11 @@ tags(
 )]
 pub struct ApiDoc;
 
-impl Server {
-    pub fn init_doc(mut self) -> Self {
-        self.0 = self.0.mount(
+pub fn stage() -> AdHoc {
+    AdHoc::on_ignite("init doc", |rocket| async {
+        rocket.mount(
             "/",
             SwaggerUi::new("/swagger-ui/<_..>").url("/api-docs/openapi.json", ApiDoc::openapi()),
-        );
-
-        self
-    }
+        )
+    })
 }

@@ -6,9 +6,9 @@ use rbatis::intercept::{Intercept, ResultType};
 use rbatis::rbdc::db::ExecResult;
 use rbdc_pg::PgDriver;
 use rbs::Value;
+use rocket::fairing::AdHoc;
 
 use crate::common::utils::config::get_config;
-use crate::framework::rocket::Server;
 
 #[derive(Debug)]
 struct ReturningIdPlugin {}
@@ -42,8 +42,9 @@ impl Intercept for ReturningIdPlugin {
     }
 }
 
-impl Server {
-    pub async fn init_sql(mut self) -> Self {
+
+pub fn stage() -> AdHoc {
+    AdHoc::on_ignite("init sql", |rocket| async {
         let rb = RBatis::new();
 
         let sql_addr = get_config("sql_addr").unwrap().as_str().unwrap().to_string();
@@ -51,8 +52,6 @@ impl Server {
 
         rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
-        self.0 = self.0.manage(rb);
-
-        self
-    }
+        rocket.manage(rb)
+    })
 }

@@ -17,11 +17,11 @@ mod mapper;
 
 #[launch]
 async fn rocket() -> _ {
-    Server::default()
-        .init_sql().await
-        .init_doc()
-        .init_chat()
-        .init_catcher().0
+    rocket::build()
+        .attach(framework::rbatis::stage())
+        .attach(framework::swagger::stage())
+        .attach(framework::rocket::catcher::stage())
+        .attach(framework::websocket::stage())
         .mount("/", routes![index,auth::register,auth::login,auth::check])
         .mount("/chat", routes![chat::connect])
 }
