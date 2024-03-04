@@ -3,6 +3,7 @@ use rocket::serde::json::{Json, json};
 use auth_macro::loggedin;
 use sql_macro::rb_conn;
 
+use crate::common::utils;
 use crate::domain::resp::R;
 use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
@@ -10,7 +11,7 @@ use crate::framework::jwt::UserClaim;
 #[rb_conn]
 #[utoipa::path]
 #[post("/register", data = "<user>")]
-pub async fn register(user: Json<User>) -> R {
+pub async fn register(mut user: Json<User>) -> R {
     match User::select_by_column("username", &user.username).await {
         Ok(users) => {
             if !users.is_empty() {
@@ -20,6 +21,7 @@ pub async fn register(user: Json<User>) -> R {
         Err(err) => return R::fail(err.to_string()),
     }
 
+    user.password = utils::password::encode(&user.password);
 
     match User::insert(&user).await {
         Ok(data) => println!("{:?}", data),
@@ -41,7 +43,7 @@ pub async fn login(login_user: Json<User>) -> R {
 
             let user = users[0].clone();
 
-            if user.password != login_user.password {
+            if !utils::password::verify(&user.password, &login_user.password) {
                 return R::fail("password error");
             }
             let user_claim = UserClaim {

@@ -24,3 +24,4 @@ utoipa-swagger-ui = { version = "6", features = ["rocket"] }
 
 auth-macro = { path = "auth-macro" }
 sql-macro = { path = "sql-macro" }
+md5 = "0.7"
