@@ -1,8 +1,5 @@
 use rocket::serde::json::{Json, json};
 
-use auth_macro::loggedin;
-use sql_macro::rb_conn;
-
 use crate::common::utils;
 use crate::domain::resp::R;
 use crate::domain::user::User;

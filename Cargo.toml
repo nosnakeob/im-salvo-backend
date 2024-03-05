@@ -1,10 +1,12 @@
-workspace = { members = ["sql-macro"] }
+workspace = { members = ["web-codegen"] }
 [package]
 name = "learn-rocket"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+web-codegen = { path = "web-codegen" }
+
 rocket = { version = "0.5", features = ["json"] }
 rocket_ws = "0.1"
 serde = { version = "1", features = ["derive"] }
@@ -22,6 +24,5 @@ rbdc-pg = "4"
 utoipa = { version = "4", features = ["rocket_extras"] }
 utoipa-swagger-ui = { version = "6", features = ["rocket"] }
 
-auth-macro = { path = "auth-macro" }
-sql-macro = { path = "sql-macro" }
 md5 = "0.7"
+

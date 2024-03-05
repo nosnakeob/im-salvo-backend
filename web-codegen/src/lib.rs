@@ -7,6 +7,11 @@ use proc_macro::TokenStream;
 
 use syn::ItemFn;
 use syn::parse_quote;
+use syn::visit_mut::VisitMut;
+
+use crate::sql::RbatisConn;
+
+mod sql;
 
 #[proc_macro_attribute]
 pub fn has_permit(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -47,6 +52,26 @@ pub fn loggedin(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // 加输入参数引入登录请求守护
     func_inputs.push(parse_quote!(_user_claim: UserClaim));
     // eprintln!("func_inputs: {:?}", func_inputs);
+
+    // 重新构建函数执行
+    let new_fn = quote!( #func );
+
+    // eprintln!("new_fn: {}", new_fn);
+
+    new_fn.into()
+}
+
+#[proc_macro_attribute]
+pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut func = parse_macro_input!(item as ItemFn);
+
+    func.sig.inputs.push(parse_quote!(rb: &rocket::State<rbatis::RBatis>));
+
+    RbatisConn.visit_item_fn_mut(&mut func);
+
+    func.block.stmts.insert(0, parse_quote! {
+        let rb = &**rb;
+    });
 
     // 重新构建函数执行
     let new_fn = quote!( #func );

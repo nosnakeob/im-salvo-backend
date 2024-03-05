@@ -2,6 +2,8 @@
 extern crate rbatis;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate web_codegen;
 
 use controller::auth;
 use controller::chat;

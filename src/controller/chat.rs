@@ -27,7 +27,7 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
             match msg {
                 Message::Text(_) => {
                     clients.lock().unwrap().iter()
-                        .filter(|(&mid, sender)| id != mid)
+                        .filter(|(&mid, _)| id != mid)
                         .for_each(|(_, sender)| sender.unbounded_send(msg.clone()).unwrap());
                 }
                 Message::Close(close_msg) => {
