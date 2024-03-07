@@ -1,3 +1,4 @@
+use std::process::exit;
 use std::sync::Arc;
 
 use rbatis::{Error, RBatis};
@@ -42,13 +43,15 @@ impl Intercept for ReturningIdPlugin {
     }
 }
 
-
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("init sql", |rocket| async {
         let rb = RBatis::new();
 
         let sql_addr = get_config("sql_addr").unwrap().as_str().unwrap().to_string();
-        rb.link(PgDriver {}, sql_addr.as_str()).await.unwrap();
+        if let Err(err) = rb.link(PgDriver {}, sql_addr.as_str()).await {
+            eprintln!("init sql error: {}", err);
+            exit(1)
+        }
 
         rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
 
