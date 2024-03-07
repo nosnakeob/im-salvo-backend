@@ -25,4 +25,3 @@ utoipa = { version = "4", features = ["rocket_extras"] }
 utoipa-swagger-ui = { version = "6", features = ["rocket"] }
 
 md5 = "0.7"
-

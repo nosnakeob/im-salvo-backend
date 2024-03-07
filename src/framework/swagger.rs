@@ -8,6 +8,7 @@ use crate::domain::{resp::R, user::User};
 #[derive(OpenApi)]
 #[openapi(
 paths(
+index, pool,
 auth::register, auth::login, auth::check,
 chat::kick, chat::status
 ),

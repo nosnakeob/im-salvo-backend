@@ -5,17 +5,13 @@ extern crate rocket;
 #[macro_use]
 extern crate web_codegen;
 
-use controller::auth;
-use controller::chat;
-
-use crate::controller::index;
+use controller::{auth, chat};
 
 mod domain;
 mod common;
 mod controller;
 mod framework;
 mod mapper;
-
 
 #[launch]
 async fn rocket() -> _ {
@@ -24,7 +20,9 @@ async fn rocket() -> _ {
         .attach(framework::swagger::stage())
         .attach(framework::rocket::catcher::stage())
         .attach(framework::websocket::stage())
-        .mount("/", routes![index,auth::register,auth::login,auth::check])
-        .mount("/chat", routes![chat::connect,chat::kick,chat::status])
+        .attach(controller::routes())
+        .attach(auth::routes())
+        .attach(chat::routes())
 }
+
 

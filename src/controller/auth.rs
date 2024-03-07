@@ -5,6 +5,8 @@ use crate::domain::resp::R;
 use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
 
+rocket_base_path!("/auth");
+
 #[rb_conn]
 #[utoipa::path]
 #[post("/register", data = "<user>")]
@@ -61,4 +63,3 @@ pub async fn login(login_user: Json<User>) -> R {
 pub async fn check() -> R {
     R::ok(None)
 }
-

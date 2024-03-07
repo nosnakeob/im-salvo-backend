@@ -1,17 +1,22 @@
+#![feature(proc_macro_span)]
 #[macro_use]
 extern crate quote;
 #[macro_use]
 extern crate syn;
 
-use proc_macro::TokenStream;
+use proc_macro::{Span, TokenStream};
+use std::fs;
 
-use syn::ItemFn;
+use syn::{Ident, ItemFn, LitStr, parse_file};
 use syn::parse_quote;
+use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 
+use crate::route::FnVisitor;
 use crate::sql::RbatisConn;
 
 mod sql;
+mod route;
 
 #[proc_macro_attribute]
 pub fn has_permit(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -81,3 +86,35 @@ pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
     new_fn.into()
 }
 
+#[proc_macro]
+pub fn rocket_base_path(input: TokenStream) -> TokenStream {
+    let base_path = parse_macro_input!(input as LitStr).value();
+    // eprintln!("input: {:?}", base_path);
+
+    let span = Span::call_site();
+    let content = fs::read_to_string(span.source_file().path()).unwrap();
+    let ast = parse_file(&content).unwrap();
+
+    let mut visitor = FnVisitor::new();
+    visitor.visit_file(&ast);
+    // eprintln!("route_fns: {:?}", visitor.route_fns);
+
+    let route_fns: Vec<_> = visitor.route_fns.iter().map(|s| Ident::new(s, proc_macro2::Span::call_site())).collect();
+
+    let new_fn = quote!(
+        pub fn routes() -> rocket::fairing::AdHoc {
+            rocket::fairing::AdHoc::on_ignite(#base_path, |rocket| async {
+                rocket.mount(
+                    #base_path,
+                    routes![
+                        #(#route_fns),*
+                    ]
+                )
+            })
+        }
+    );
+
+    // eprintln!("{}", new_fn);
+
+    new_fn.into()
+}
