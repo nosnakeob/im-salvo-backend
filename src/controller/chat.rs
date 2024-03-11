@@ -8,7 +8,7 @@ use rocket_ws::{Channel, Message, WebSocket};
 use rocket_ws::frame::{CloseCode, CloseFrame};
 use serde_json::json;
 
-use crate::domain::resp::R;
+use crate::framework::rocket::resp::R;
 use crate::framework::websocket::ClientMap;
 
 rocket_base_path!("/chat");
@@ -67,11 +67,11 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
 #[delete("/<id>")]
 pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
     clients.lock().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
-    R::ok(None)
+    R::Success(None::<u8>.into())
 }
 
 #[utoipa::path(context_path = "/chat")]
 #[get("/status")]
 pub async fn status(clients: &State<ClientMap>) -> R {
-    R::ok(Some(json!(clients.lock().unwrap().keys().collect::<Vec<_>>())))
+    R::Success(Some(json!(clients.lock().unwrap().keys().collect::<Vec<_>>())).into())
 }

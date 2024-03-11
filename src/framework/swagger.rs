@@ -3,7 +3,8 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::controller::*;
-use crate::domain::{resp::R, user::User};
+use crate::domain::user::User;
+use crate::framework::rocket::resp::R;
 
 #[derive(OpenApi)]
 #[openapi(
