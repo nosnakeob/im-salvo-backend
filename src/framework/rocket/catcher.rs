@@ -6,7 +6,7 @@ use crate::framework::rocket::resp::{MsgR, R};
 
 #[catch(default)]
 pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
-    R::Other(MsgR::new(status, "server error"))
+    R::Other(MsgR::new(status, status.reason().unwrap()))
 }
 
 #[catch(401)]

@@ -5,6 +5,9 @@
 port = 8000
 secret_key = "secret"
 
+[default.databases.redis]
+url = "redis://localhost/"
+
 [debug]
 sql_addr = "postgres://postgres:135246@localhost:5432/le_rocket"
 

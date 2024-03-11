@@ -3,3 +3,4 @@ pub mod rbatis;
 pub mod rocket;
 pub mod swagger;
 pub mod websocket;
+pub mod redis;
