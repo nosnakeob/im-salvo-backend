@@ -2,16 +2,16 @@ use rocket::fairing::AdHoc;
 use rocket::http::Status;
 use rocket::Request;
 
-use crate::framework::rocket::resp::{MsgR, R};
+use crate::framework::rocket::resp::R;
 
 #[catch(default)]
 pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
-    R::Other(MsgR::new(status, status.reason().unwrap()))
+    R::catch(status, status.reason().unwrap())
 }
 
 #[catch(401)]
 pub async fn unauthorized() -> R {
-    R::Other(MsgR::new(Status::Unauthorized, "haven't login"))
+    R::catch(Status::Unauthorized, "haven't login")
 }
 
 pub fn stage() -> AdHoc {

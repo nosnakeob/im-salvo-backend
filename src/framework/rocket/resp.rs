@@ -11,72 +11,70 @@ use serde_json::{to_value, Value};
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize)]
-pub struct DataR {
+pub struct Resp {
     code: Status,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    msg: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     data: Option<Value>,
 }
 
-impl<T: Serialize> From<Option<T>> for DataR {
-    fn from(data: Option<T>) -> Self {
-        DataR {
-            code: Status::Ok,
+impl Resp {
+    pub fn new<S: ToString, D: Serialize>(code: Status, msg: Option<S>, data: Option<D>) -> Self {
+        Self {
+            code,
+            msg: msg.map(|s| s.to_string()),
             data: data.map(|d| to_value(d).unwrap()),
         }
     }
 }
 
-impl<'r> Responder<'r, 'static> for DataR {
+
+impl<'r> Responder<'r, 'static> for Resp {
     fn respond_to(self, request: &'r Request) -> rocket::response::Result<'static> {
         Json(self).respond_to(request)
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct MsgR {
-    code: Status,
-    msg: String,
-}
 
-impl MsgR {
-    pub fn new<T: ToString>(code: Status, msg: T) -> Self {
-        Self { code, msg: msg.to_string() }
-    }
-}
-
-
-impl<T: ToString> From<T> for MsgR {
-    fn from(msg: T) -> Self {
-        MsgR {
-            code: Status::BadRequest,
-            msg: msg.to_string(),
-        }
-    }
-}
-
-impl<'r> Responder<'r, 'static> for MsgR {
-    fn respond_to(self, request: &Request<'_>) -> rocket::response::Result<'static> {
-        Json(self).respond_to(request)
-    }
-}
-
-
-// 整个响应
+// 全部可能的响应
 #[derive(Debug, Responder, ToSchema)]
 #[response(content_type = "json")]
 pub enum R {
-    #[response(status = 200, content_type = "json")]
-    Success(DataR),
-    #[response(status = 400, content_type = "json")]
-    Fail(MsgR),
-    #[response(status = 500, content_type = "json")]
-    Err(MsgR),
-    Other(MsgR),
+    #[response(status = 200)]
+    Success(Resp),
+    // 可预知的错误
+    #[response(status = 400)]
+    Fail(Resp),
+    // 未处理的错误
+    #[response(status = 500)]
+    Err(Resp),
+    // 捕获状态码
+    Catch(Resp),
 }
+
+impl R {
+    pub fn success<T: Serialize>(data: T) -> Self {
+        R::Success(Resp::new(Status::Ok, None::<String>, Some(data)))
+    }
+
+    pub fn no_val_success() -> Self {
+        R::Success(Resp::new(Status::Ok, None::<String>, None::<Value>))
+    }
+
+    pub fn fail<T: ToString>(msg: T) -> Self {
+        R::Fail(Resp::new(Status::BadRequest, Some(msg), None::<Value>))
+    }
+
+    pub fn catch<T: ToString>(code: Status, msg: T) -> Self {
+        R::Catch(Resp::new(code, Some(msg), None::<Value>))
+    }
+}
+
 
 // accept `?`
 impl<E: Error> FromResidual<Result<Infallible, E>> for R {
     fn from_residual(residual: Result<Infallible, E>) -> Self {
-        R::Err(MsgR::new(Status::InternalServerError, residual.unwrap_err().to_string()))
+        R::Err(Resp::new(Status::InternalServerError, Some(residual.unwrap_err().to_string()), None::<Value>))
     }
 }

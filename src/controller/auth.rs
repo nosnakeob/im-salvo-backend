@@ -14,7 +14,7 @@ pub async fn register(mut user: Json<User>) -> R {
     let users = User::select_by_column("username", &user.username).await?;
 
     if !users.is_empty() {
-        return R::Fail("username exists".into());
+        return R::fail("username exists");
     }
 
     user.password = utils::password::encode(&user.password);
@@ -23,7 +23,7 @@ pub async fn register(mut user: Json<User>) -> R {
 
     println!("{:?}", data);
 
-    R::Success(None::<u8>.into())
+    R::no_val_success()
 }
 
 #[rb_conn]
@@ -33,20 +33,20 @@ pub async fn login(login_user: Json<User>) -> R {
     let users = User::select_by_column("username", &login_user.username).await?;
 
     if users.is_empty() {
-        return R::Fail("username not exists".into());
+        return R::fail("username not exists");
     }
 
     let user = users[0].clone();
 
     if !utils::password::verify(&user.password, &login_user.password) {
-        return R::Fail("password error".into());
+        return R::fail("password error");
     }
     let user_claim = UserClaim {
         id: user.id.unwrap(),
     };
 
     let token = UserClaim::sign(user_claim);
-    R::Success(Some(json!({ "token": token })).into())
+    R::success(json!({ "token": token }))
 }
 
 
@@ -54,5 +54,5 @@ pub async fn login(login_user: Json<User>) -> R {
 #[utoipa::path]
 #[get("/check")]
 pub async fn check() -> R {
-    R::Success(None::<u8>.into())
+    R::no_val_success()
 }

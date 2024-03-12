@@ -3,7 +3,6 @@ use std::time::Duration;
 use rocket::tokio::time::sleep;
 use rocket_db_pools::Connection;
 use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
-use serde_json::to_value;
 
 use crate::framework::redis::RedisCache;
 use crate::framework::rocket::resp::R;
@@ -23,7 +22,8 @@ pub async fn index(mut redis_cache: Connection<RedisCache>) -> R {
     let val: String = redis_cache.get("key").await?;
     println!("redis get: {:?}", val);
 
-    R::Success(None::<u8>.into())
+
+    R::no_val_success()
 }
 
 
@@ -31,5 +31,5 @@ pub async fn index(mut redis_cache: Connection<RedisCache>) -> R {
 #[utoipa::path]
 #[get("/pool")]
 pub async fn pool() -> R {
-    R::Success(Some(to_value(rb.get_pool().unwrap().state().await.as_map().unwrap()).unwrap()).into())
+    R::success(rb.get_pool().unwrap().state().await.as_map().unwrap())
 }
