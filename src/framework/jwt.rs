@@ -1,12 +1,11 @@
-use once_cell::sync::Lazy;
+use once_cell::unsync::Lazy;
 use rocket::Config;
 use rocket_jwt::jwt;
 
 use crate::common::utils::config::get_config;
 
-static SECRET_KEY: Lazy<String> = Lazy::new(|| {
-    let secret = get_config(Config::SECRET_KEY).unwrap();
-    secret.as_str().unwrap().to_owned()
+const SECRET_KEY: Lazy<String> = Lazy::new(|| {
+    get_config(Config::SECRET_KEY).unwrap().as_str().unwrap().into()
 });
 
 

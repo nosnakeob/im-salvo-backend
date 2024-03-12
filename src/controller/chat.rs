@@ -12,7 +12,6 @@ use crate::framework::websocket::ClientMap;
 
 rocket_base_path!("/chat");
 
-// #[utoipa::path]
 #[get("/connect/<id>")]
 pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Channel<'_> {
     ws.channel(move |stream| Box::pin(async move {
