@@ -1,3 +1,4 @@
+use derive_new::new;
 use once_cell::unsync::Lazy;
 use rocket::Config;
 use rocket_jwt::jwt;
@@ -9,10 +10,10 @@ const SECRET_KEY: Lazy<String> = Lazy::new(|| {
 });
 
 
-// 2h
-#[jwt(SECRET_KEY, exp = 7200)]
-pub struct UserClaim {
-    pub id: u32,
-}
+// 30day
+#[jwt(SECRET_KEY)]
+#[derive(new)]
+pub struct UserClaim;
+
 
 
