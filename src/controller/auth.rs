@@ -12,7 +12,7 @@ use crate::framework::rocket::resp::R;
 rocket_base_path!("/auth");
 
 #[rb_conn]
-#[utoipa::path(context_path = "/auth")]
+#[utoipa::path(context_path = BASE)]
 #[post("/register", data = "<user>")]
 pub async fn register(mut user: Json<User>) -> R {
     let users = User::select_by_column("username", &user.username).await?;
@@ -31,7 +31,7 @@ pub async fn register(mut user: Json<User>) -> R {
 }
 
 #[rb_conn]
-#[utoipa::path(context_path = "/auth")]
+#[utoipa::path(context_path = BASE)]
 #[post("/login", data = "<login_user>")]
 pub async fn login(login_user: Json<User>, mut redis_cache: Connection<RedisCache>) -> R {
     let users = User::select_by_column("username", &login_user.username).await?;
@@ -55,7 +55,7 @@ pub async fn login(login_user: Json<User>, mut redis_cache: Connection<RedisCach
 }
 
 
-#[utoipa::path(context_path = "/auth")]
+#[utoipa::path(context_path = BASE)]
 #[get("/check")]
 pub async fn check(user: User) -> R {
     R::no_val_success()

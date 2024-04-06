@@ -109,6 +109,8 @@ pub fn rocket_base_path(input: TokenStream) -> TokenStream {
                 )
             })
         }
+
+        const BASE: &str = #base_path;
     );
 
     // eprintln!("{}", new_fn);

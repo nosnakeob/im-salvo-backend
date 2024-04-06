@@ -61,14 +61,14 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
     }))
 }
 
-#[utoipa::path(context_path = "/chat")]
+#[utoipa::path(context_path = BASE)]
 #[delete("/<id>")]
 pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
     clients.lock().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
     R::no_val_success()
 }
 
-#[utoipa::path(context_path = "/chat")]
+#[utoipa::path(context_path = BASE)]
 #[get("/status")]
 pub async fn status(clients: &State<ClientMap>) -> R {
     R::success(clients.lock().unwrap().keys().collect::<Vec<_>>())
