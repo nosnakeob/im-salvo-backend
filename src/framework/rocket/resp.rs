@@ -6,17 +6,17 @@ use rocket::http::Status;
 use rocket::Request;
 use rocket::response::Responder;
 use rocket::serde::json::Json;
-use rocket::serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{to_value, Value};
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Resp {
-    code: Status,
+    pub code: Status,
     #[serde(skip_serializing_if = "Option::is_none")]
-    msg: Option<String>,
+    pub msg: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    data: Option<Value>,
+    pub data: Option<Value>,
 }
 
 impl Resp {
