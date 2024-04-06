@@ -5,12 +5,12 @@ use rocket::Request;
 use crate::framework::rocket::resp::R;
 
 #[catch(default)]
-pub async fn default_catcher(status: Status, _: &Request<'_>) -> R {
+async fn default_catcher(status: Status, _: &Request<'_>) -> R {
     R::catch(status, status.reason().unwrap())
 }
 
 #[catch(401)]
-pub async fn unauthorized() -> R {
+async fn unauthorized() -> R {
     R::catch(Status::Unauthorized, "haven't login")
 }
 

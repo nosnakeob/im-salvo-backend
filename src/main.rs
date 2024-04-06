@@ -8,13 +8,13 @@ extern crate web_codegen;
 
 use rocket_db_pools::Database;
 
-use controller::*;
-
 mod domain;
 mod common;
 mod controller;
 mod framework;
 mod mapper;
+
+#[cfg(test)]
 mod test;
 
 #[auto_mount("src/controller")]

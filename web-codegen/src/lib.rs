@@ -9,7 +9,6 @@ use std::fs;
 use std::ops::Add;
 use std::str::FromStr;
 
-use quote::ToTokens;
 use syn::{Expr, ItemFn, LitStr, parse_file, Stmt};
 use syn::parse_quote;
 use syn::visit::Visit;
