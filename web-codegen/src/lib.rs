@@ -6,12 +6,16 @@ extern crate syn;
 
 use proc_macro::{Span, TokenStream};
 use std::fs;
+use std::ops::Add;
+use std::str::FromStr;
 
-use syn::{ItemFn, LitStr, parse_file};
+use quote::ToTokens;
+use syn::{Expr, ItemFn, LitStr, parse_file, Stmt};
 use syn::parse_quote;
 use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 
+use crate::utils::path2module_path;
 use crate::visitor::*;
 
 mod visitor;
@@ -112,6 +116,34 @@ pub fn rocket_base_path(input: TokenStream) -> TokenStream {
 
         const BASE: &str = #base_path;
     );
+
+    // eprintln!("{}", new_fn);
+
+    new_fn.into()
+}
+
+#[proc_macro_attribute]
+pub fn auto_mount(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let dir = parse_macro_input!(attr as LitStr).value();
+    // eprintln!("dir: {}", dir);
+
+    let mut func = parse_macro_input!(item as ItemFn);
+
+
+    if let (Some(Stmt::Expr(Expr::MethodCall(method), _)), Ok(mut entry)) =
+        (func.block.stmts.last_mut(), fs::read_dir(&dir)) {
+        while let Some(Ok(f)) = entry.next() {
+            // let route_path = path2module_path(&mut f.path()) + "::routes()";
+            let route_path = proc_macro2::TokenStream::from_str(path2module_path(&mut f.path()).add("::routes()").as_str()).unwrap();
+
+            *method = parse_quote! { #method
+                    .attach(#route_path)
+                }
+        }
+    }
+
+
+    let new_fn = quote!( #func );
 
     // eprintln!("{}", new_fn);
 

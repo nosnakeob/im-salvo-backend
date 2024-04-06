@@ -17,6 +17,7 @@ mod framework;
 mod mapper;
 mod test;
 
+#[auto_mount("src/controller")]
 #[launch]
 fn rocket() -> _ {
     rocket::build()
@@ -25,10 +26,6 @@ fn rocket() -> _ {
         .attach(framework::rocket::catcher::stage())
         .attach(framework::websocket::stage())
         .attach(framework::redis::RedisCache::init())
-        .attach(controller::routes())
-        .attach(auth::routes())
-        .attach(chat::routes())
-        .attach(captcha::routes())
 }
 
 
