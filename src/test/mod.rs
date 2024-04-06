@@ -1,4 +1,3 @@
-use once_cell::unsync::Lazy;
 use rocket::http::{Header, Status};
 use rocket::local::blocking::Client;
 
@@ -6,22 +5,22 @@ use crate::domain::user::User;
 use crate::framework::rocket::resp::Resp;
 use crate::rocket;
 
-const CLIENT: Lazy<Client> = Lazy::new(|| {
+fn get_client() -> Client {
     Client::tracked(rocket()).unwrap()
-});
+}
 
 #[test]
 fn index() {
-    let client = CLIENT;
-    let mut resp = client.get("/").dispatch();
+    let client = get_client();
+    let resp = client.get("/").dispatch();
 
     assert_eq!(resp.status(), Status::Ok);
 }
 
 #[test]
 fn register() {
-    let client = CLIENT;
-    let mut resp = client.post("/auth/register")
+    let client = get_client();
+    let resp = client.post("/auth/register")
         .json(&User::default())
         .dispatch();
 
@@ -36,7 +35,7 @@ fn register() {
 #[test]
 fn login() {
     // 已有对应用户
-    let client = CLIENT;
+    let client = get_client();
     let mut resp = client.post("/auth/login")
         .json(&User::default())
         .dispatch();
