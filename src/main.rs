@@ -15,9 +15,10 @@ mod common;
 mod controller;
 mod framework;
 mod mapper;
+mod test;
 
 #[launch]
-async fn rocket() -> _ {
+fn rocket() -> _ {
     rocket::build()
         .attach(framework::rbatis::stage())
         .attach(framework::swagger::stage())
