@@ -10,11 +10,12 @@ use rocket::fairing::AdHoc;
 
 use crate::common::utils::config::get_config;
 
+
 #[derive(Debug)]
-struct ReturningIdPlugin {}
+struct InsertReturnIdPlugin {}
 
 #[async_trait]
-impl Intercept for ReturningIdPlugin {
+impl Intercept for InsertReturnIdPlugin {
     async fn before(
         &self,
         _task_id: i64,
@@ -28,9 +29,10 @@ impl Intercept for ReturningIdPlugin {
 
             if let ResultType::Exec(exec_r) = result {
                 let id = rb.query(&new_sql, args.clone()).await?;
-                let mut exec = ExecResult::default();
-                exec.rows_affected = id.len() as u64;
-                exec.last_insert_id = id.as_array().unwrap().last().unwrap()["id"].clone();
+                let exec = ExecResult {
+                    rows_affected: id.len() as u64,
+                    last_insert_id: id.as_array().unwrap().last().unwrap()["id"].clone(),
+                };
 
                 *exec_r = Ok(exec);
 
@@ -50,7 +52,7 @@ pub fn stage() -> AdHoc {
 
         rb.link(PgDriver {}, sql_addr.as_str()).await.unwrap();
 
-        rb.intercepts.insert(0, Arc::new(ReturningIdPlugin {}));
+        rb.intercepts.insert(0, Arc::new(InsertReturnIdPlugin {}));
 
         rocket.manage(rb)
     })
