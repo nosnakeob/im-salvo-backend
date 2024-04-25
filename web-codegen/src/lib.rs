@@ -5,20 +5,22 @@ extern crate quote;
 extern crate syn;
 
 use proc_macro::{Span, TokenStream};
-use std::fs;
 use std::ops::Add;
 use std::str::FromStr;
 
-use syn::{Expr, ItemFn, LitStr, parse_file, Stmt};
+use syn::{ItemFn, LitStr};
 use syn::parse_quote;
 use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 
-use crate::utils::path2module_path;
-use crate::visitor::*;
+use crate::connection::{_rb_conn};
+use crate::route::{_auto_mount, _rocket_base_path};
 
 mod visitor;
 mod utils;
+mod connection;
+mod route;
+
 
 #[proc_macro_attribute]
 pub fn has_permit(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -54,11 +56,8 @@ pub fn loggedin(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let func_decl = &mut func.sig; // 函数申明
     let func_inputs = &mut func_decl.inputs; // 函数输入参数
 
-    // eprintln!("--------------------------");
-    // eprintln!("func_inputs: {:?}", func_inputs);
     // 加输入参数引入登录请求守护
     func_inputs.push(parse_quote!(_user_claim: UserClaim));
-    // eprintln!("func_inputs: {:?}", func_inputs);
 
     // 重新构建函数执行
     let new_fn = quote!( #func );
@@ -72,13 +71,14 @@ pub fn loggedin(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut func = parse_macro_input!(item as ItemFn);
 
-    func.sig.inputs.push(parse_quote!(rb: &rocket::State<rbatis::RBatis>));
+    _rb_conn(&mut func);
 
-    RbatisConn.visit_item_fn_mut(&mut func);
+    let new_fn = quote!( #func );
 
-    func.block.stmts.insert(0, parse_quote! {
-        let rb = &**rb;
-    });
+    // eprintln!("new_fn: {}", new_fn);
+
+    new_fn.into()
+}
 
     // 重新构建函数执行
     let new_fn = quote!( #func );
@@ -93,54 +93,20 @@ pub fn rocket_base_path(input: TokenStream) -> TokenStream {
     let base_path = parse_macro_input!(input as LitStr);
     // eprintln!("input: {:?}", base_path);
 
-    let source_path = Span::call_site().source_file().path();
-    let content = fs::read_to_string(source_path).unwrap();
-    let ast = parse_file(&content).unwrap();
-
-    let mut visitor = RocketRouteFnVisitor::new();
-    visitor.visit_file(&ast);
-    // eprintln!("route_fns: {:?}", visitor.route_fns);
-
-    let route_fns = visitor.route_fns;
-
-    let new_fn = quote!(
-        pub fn routes() -> rocket::fairing::AdHoc {
-            rocket::fairing::AdHoc::on_ignite(#base_path, |rocket| async {
-                rocket.mount(
-                    #base_path,
-                    routes![ #(#route_fns),* ]
-                )
-            })
-        }
-
-        const BASE: &str = #base_path;
-    );
+    let new_fn = _rocket_base_path(base_path, Span::call_site().source_file().path());
 
     // eprintln!("{}", new_fn);
 
-    new_fn.into()
+    new_fn
 }
 
 #[proc_macro_attribute]
 pub fn auto_mount(attr: TokenStream, item: TokenStream) -> TokenStream {
     let dir = parse_macro_input!(attr as LitStr).value();
     // eprintln!("dir: {}", dir);
-
     let mut func = parse_macro_input!(item as ItemFn);
 
-
-    if let (Some(Stmt::Expr(Expr::MethodCall(method), _)), Ok(mut entry)) =
-        (func.block.stmts.last_mut(), fs::read_dir(&dir)) {
-        while let Some(Ok(f)) = entry.next() {
-            // let route_path = path2module_path(&mut f.path()) + "::routes()";
-            let route_path = proc_macro2::TokenStream::from_str(path2module_path(&mut f.path()).add("::routes()").as_str()).unwrap();
-
-            *method = parse_quote! { #method
-                    .attach(#route_path)
-                }
-        }
-    }
-
+    _auto_mount(dir, &mut func);
 
     let new_fn = quote!( #func );
 
