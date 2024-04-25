@@ -13,7 +13,7 @@ use syn::parse_quote;
 use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 
-use crate::connection::{_rb_conn};
+use crate::connection::{_rb_conn, _transaction};
 use crate::route::{_auto_mount, _rocket_base_path};
 
 mod visitor;
@@ -80,7 +80,12 @@ pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
     new_fn.into()
 }
 
-    // 重新构建函数执行
+#[proc_macro_attribute]
+pub fn transaction(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut func = parse_macro_input!(item as ItemFn);
+
+    _transaction(&mut func);
+
     let new_fn = quote!( #func );
 
     // eprintln!("new_fn: {}", new_fn);
