@@ -62,11 +62,11 @@ impl R {
         R::Success(Resp::new(Status::Ok, None::<String>, None::<Value>))
     }
 
-    pub fn fail<T: ToString>(msg: T) -> Self {
+    pub fn fail(msg: &str) -> Self {
         R::Fail(Resp::new(Status::BadRequest, Some(msg), None::<Value>))
     }
 
-    pub fn catch<T: ToString>(code: Status, msg: T) -> Self {
+    pub fn catch(code: Status, msg: &str) -> Self {
         R::Catch(Resp::new(code, Some(msg), None::<Value>))
     }
 }
@@ -77,4 +77,11 @@ impl<E: Error> FromResidual<Result<Infallible, E>> for R {
     fn from_residual(residual: Result<Infallible, E>) -> Self {
         R::Err(Resp::new(Status::InternalServerError, Some(residual.unwrap_err().to_string()), None::<Value>))
     }
+}
+
+#[macro_export]
+macro_rules! bail {
+    ($e:expr) => {
+        return R::fail($e);
+    };
 }

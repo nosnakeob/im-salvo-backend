@@ -1,9 +1,9 @@
-use anyhow::bail;
 use deadpool_redis::Pool;
 use redis::AsyncCommands;
 use rocket::serde::json::{Json, json};
 use rocket::State;
 
+use crate::bail;
 use crate::common::constant::cache::token2key;
 use crate::common::utils;
 use crate::domain::user::User;
@@ -14,17 +14,17 @@ rocket_base_path!("/auth");
 
 #[rb_conn]
 #[utoipa::path(context_path = BASE)]
-#[post("/register", data = "<user>")]
-pub async fn register(mut user: Json<User>) -> R {
-    let users = User::select_by_column("username", &user.username).await?;
+#[post("/register", data = "<register_user>")]
+pub async fn register(mut register_user: Json<User>) -> R {
+    let user = User::select_by_name(&register_user.username).await?;
 
-    if !users.is_empty() {
-        return R::fail("username exists");
+    if user.is_none() {
+        bail!("username exists");
     }
 
-    user.password = utils::password::encode(&user.password);
+    register_user.password = utils::password::encode(&register_user.password);
 
-    let data = User::insert(&user).await?;
+    let data = User::insert(&register_user).await?;
 
     println!("{:?}", data);
 
@@ -35,17 +35,17 @@ pub async fn register(mut user: Json<User>) -> R {
 #[utoipa::path(context_path = BASE)]
 #[post("/login", data = "<login_user>")]
 pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
-    let users = User::select_by_column("username", &login_user.username).await?;
+    let user = User::select_by_name(&login_user.username).await?;
 
-    if users.is_empty() {
-        return R::fail("username not exists");
-    }
-
-    let user = &users[0];
+    let user = match user {
+        Some(user) => user,
+        None => bail!("user not exists")
+    };
 
     if !utils::password::verify(&user.password, &login_user.password) {
-        return R::fail("password error");
+        bail!("password error");
     }
+
     let user_claim = UserClaim::new();
 
     let token = UserClaim::sign(user_claim);
@@ -58,6 +58,6 @@ pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
 
 #[utoipa::path(context_path = BASE)]
 #[get("/check")]
-pub async fn check(user: User) -> R {
+pub async fn check(_user: User) -> R {
     R::no_val_success()
 }
