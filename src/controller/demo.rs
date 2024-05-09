@@ -1,10 +1,11 @@
 use rocket_db_pools::Connection;
 use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
+use rocket::{Config, State};
 
 use crate::common::constant::cache::token2key;
 use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
-use crate::framework::redis::RedisCache;
+use crate::framework::rocket::AppConfig;
 use crate::framework::rocket::resp::R;
 
 rocket_base_path!("/demo");
@@ -49,3 +50,15 @@ pub async fn transaction() -> R {
 
     R::no_val_success()
 }
+
+#[utoipa::path(context_path = BASE)]
+#[get("/config")]
+pub async fn config(rocket_config: &Config, app_config: &State<AppConfig>) -> R {
+    println!("rocket_config: {:#?}", rocket_config);
+    println!("app_config: {:#?}", app_config);
+
+    println!("{}", app_config.database.postgres.url);
+
+    R::no_val_success()
+}
+

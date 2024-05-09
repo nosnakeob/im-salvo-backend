@@ -6,7 +6,7 @@ use rocket_jwt::jwt;
 use crate::common::utils::config::get_config;
 
 const SECRET_KEY: Lazy<String> = Lazy::new(|| {
-    get_config(Config::SECRET_KEY).unwrap().as_str().unwrap().into()
+    get_config(Config::SECRET_KEY).unwrap().into_string().unwrap()
 });
 
 

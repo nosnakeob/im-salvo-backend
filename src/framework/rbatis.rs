@@ -46,11 +46,10 @@ impl Intercept for InsertReturnIdPlugin {
 
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("init sql", |rocket| async {
+        let sql_addr = get_config("database.postgres.url").unwrap().into_string().unwrap();
+
         let rb = RBatis::new();
-
-        let sql_addr = get_config("sql_addr").unwrap().as_str().unwrap().to_string();
-
-        rb.link(PgDriver {}, sql_addr.as_str()).await.unwrap();
+        rb.link(PgDriver {}, &sql_addr).await.unwrap();
 
         rb.intercepts.insert(0, Arc::new(InsertReturnIdPlugin {}));
 

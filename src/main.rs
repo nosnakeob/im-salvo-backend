@@ -6,7 +6,8 @@ extern crate rocket;
 #[macro_use]
 extern crate web_codegen;
 
-use rocket_db_pools::Database;
+use rocket::fairing::AdHoc;
+use crate::framework::rocket::AppConfig;
 
 mod domain;
 mod common;
@@ -26,6 +27,7 @@ fn rocket() -> _ {
         .attach(framework::rocket::catcher::stage())
         .attach(framework::websocket::stage())
         .attach(framework::redis::RedisCache::init())
+        .attach(AdHoc::config::<AppConfig>())
 }
 
 
