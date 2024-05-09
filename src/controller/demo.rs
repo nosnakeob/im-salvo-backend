@@ -12,7 +12,7 @@ use crate::framework::rocket::resp::R;
 rocket_base_path!("/demo");
 #[utoipa::path(context_path = BASE)]
 #[get("/redis")]
-pub async fn redis(mut redis_pool: &State<Pool>) -> R {
+pub async fn redis_demo(redis_pool: &State<Pool>) -> R {
     let user = User::default();
 
     let claim = UserClaim::new();

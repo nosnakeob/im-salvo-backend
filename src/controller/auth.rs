@@ -34,7 +34,7 @@ pub async fn register(mut user: Json<User>) -> R {
 #[rb_conn]
 #[utoipa::path(context_path = BASE)]
 #[post("/login", data = "<login_user>")]
-pub async fn login(login_user: Json<User>, mut redis_pool: &State<Pool>) -> R {
+pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
     let users = User::select_by_column("username", &login_user.username).await?;
 
     if users.is_empty() {

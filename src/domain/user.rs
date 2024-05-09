@@ -38,7 +38,7 @@ impl<'r> FromRequest<'r> for User {
 
         let token = auth.strip_prefix("Bearer ").unwrap();
 
-        let mut redis_pool: &State<Pool> = req.guard().await.unwrap();
+        let redis_pool: &State<Pool> = req.guard().await.unwrap();
 
         if let Ok(user) = redis_pool.get().await.unwrap().get(token2key(token)).await {
             return Outcome::Success(user);

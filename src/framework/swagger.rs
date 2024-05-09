@@ -12,7 +12,7 @@ paths(
 index, pool,
 auth::register, auth::login, auth::check,
 chat::kick, chat::status,
-demo::redis
+demo::redis_demo
 ),
 components(
 schemas(User, R),
