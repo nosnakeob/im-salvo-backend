@@ -19,21 +19,21 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
 
         let (write, read) = stream.split();
 
-        clients.lock().unwrap().insert(id, sender);
+        clients.write().unwrap().insert(id, sender);
 
-        clients.lock().unwrap().iter().for_each(|(_, sender)| sender.unbounded_send(Message::Text(format!("{} 已上线", id))).unwrap());
+        clients.read().unwrap().iter().for_each(|(_, sender)| sender.unbounded_send(Message::Text(format!("{} 已上线", id))).unwrap());
 
         let broadcast = read.try_for_each(|msg| {
             match msg {
                 Message::Text(_) => {
-                    clients.lock().unwrap().iter()
+                    clients.read().unwrap().iter()
                         .filter(|(&mid, _)| id != mid)
                         .for_each(|(_, sender)| sender.unbounded_send(msg.clone()).unwrap());
                 }
                 Message::Close(close_msg) => {
                     println!("{:?}", close_msg);
 
-                    let mut guard = clients.lock().unwrap();
+                    let mut guard = clients.write().unwrap();
 
                     guard.remove(&id);
 
@@ -52,7 +52,7 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
         if let Err(err) = try_join!(broadcast, recv) {
             eprintln!("{}", err);
 
-            clients.lock().unwrap().remove(&id);
+            clients.write().unwrap().remove(&id);
 
             println!("{} disconnect", id);
         }
@@ -64,12 +64,12 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
 #[utoipa::path(context_path = BASE)]
 #[delete("/<id>")]
 pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
-    clients.lock().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
+    clients.read().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
     R::no_val_success()
 }
 
 #[utoipa::path(context_path = BASE)]
 #[get("/status")]
 pub async fn status(clients: &State<ClientMap>) -> R {
-    R::success(clients.lock().unwrap().keys().collect::<Vec<_>>())
+    R::success(clients.read().unwrap().keys().collect::<Vec<_>>())
 }
