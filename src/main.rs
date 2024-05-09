@@ -26,7 +26,7 @@ fn rocket() -> _ {
         .attach(framework::swagger::stage())
         .attach(framework::rocket::catcher::stage())
         .attach(framework::websocket::stage())
-        .attach(framework::redis::RedisCache::init())
+        .attach(framework::redis::stage())
         .attach(AdHoc::config::<AppConfig>())
 }
 

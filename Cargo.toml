@@ -7,28 +7,39 @@ edition = "2021"
 [dependencies]
 web-codegen = { path = "web-codegen" }
 
-rocket = { version = "0.5", features = ["json"] }
+# 异步模型
+tokio = "1.37"
+
+# web框架
+rocket = { version = "0.5", features = ["json", "uuid"] }
 rocket_ws = "0.1"
 
-redis = "0.23"
-rocket_db_pools = { version = "0.1", features = ["deadpool_redis"] }
-redis-macros = "0.2"
-
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-
-once_cell = "1"
-
-jsonwebtoken = "9"
-rocket-jwt = "0.5"
+# 数据库
+redis = { version = "0.25", features = ["tokio-comp"] }
+deadpool-redis = { version = "0.15", features = ["serde"] }
+redis-macros = "0.3"
 
 rbs = "4"
 rbatis = "4"
 rbdc-pg = "4"
 
+# 序列化
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# 懒加载
+once_cell = "1"
+
+# 登录认证
+jsonwebtoken = "9"
+rocket-jwt = "0.5"
+
+# 文档
 utoipa = { version = "4", features = ["rocket_extras"] }
-utoipa-swagger-ui = { version = "6", features = ["rocket"] }
+utoipa-swagger-ui = { version = "7", features = ["rocket"] }
 
 md5 = "0.7"
 
 derive-new = "0.6"
+
+anyhow = "1"

@@ -1,14 +1,14 @@
+use deadpool_redis::Pool;
 use redis::AsyncCommands;
 use redis_macros::{FromRedisValue, ToRedisArgs};
+
 use rocket::http::Status;
-use rocket::Request;
+use rocket::{Request, State};
 use rocket::request::{FromRequest, Outcome};
 use rocket::serde::{Deserialize, Serialize};
-use rocket_db_pools::Connection;
 use utoipa::ToSchema;
 
 use crate::common::constant::cache::token2key;
-use crate::framework::redis::RedisCache;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone, ToRedisArgs, FromRedisValue)]
 pub struct User {
@@ -38,9 +38,9 @@ impl<'r> FromRequest<'r> for User {
 
         let token = auth.strip_prefix("Bearer ").unwrap();
 
-        let mut redis_cache: Connection<RedisCache> = req.guard().await.unwrap();
+        let mut redis_pool: &State<Pool> = req.guard().await.unwrap();
 
-        if let Ok(user) = redis_cache.get(token2key(token)).await {
+        if let Ok(user) = redis_pool.get().await.unwrap().get(token2key(token)).await {
             return Outcome::Success(user);
         };
 

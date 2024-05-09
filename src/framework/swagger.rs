@@ -11,7 +11,8 @@ use crate::framework::rocket::resp::R;
 paths(
 index, pool,
 auth::register, auth::login, auth::check,
-chat::kick, chat::status
+chat::kick, chat::status,
+demo::redis
 ),
 components(
 schemas(User, R),

@@ -1,12 +1,13 @@
+use anyhow::bail;
+use deadpool_redis::Pool;
+use redis::AsyncCommands;
 use rocket::serde::json::{Json, json};
-use rocket_db_pools::Connection;
-use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
+use rocket::State;
 
 use crate::common::constant::cache::token2key;
 use crate::common::utils;
 use crate::domain::user::User;
 use crate::framework::jwt::UserClaim;
-use crate::framework::redis::RedisCache;
 use crate::framework::rocket::resp::R;
 
 rocket_base_path!("/auth");
@@ -33,7 +34,7 @@ pub async fn register(mut user: Json<User>) -> R {
 #[rb_conn]
 #[utoipa::path(context_path = BASE)]
 #[post("/login", data = "<login_user>")]
-pub async fn login(login_user: Json<User>, mut redis_cache: Connection<RedisCache>) -> R {
+pub async fn login(login_user: Json<User>, mut redis_pool: &State<Pool>) -> R {
     let users = User::select_by_column("username", &login_user.username).await?;
 
     if users.is_empty() {
@@ -49,7 +50,7 @@ pub async fn login(login_user: Json<User>, mut redis_cache: Connection<RedisCach
 
     let token = UserClaim::sign(user_claim);
 
-    redis_cache.set_ex(token2key(&token), user, 3600).await?;
+    redis_pool.get().await?.set_ex(token2key(&token), user, 3600).await?;
 
     R::success(json!({ "token": token }))
 }

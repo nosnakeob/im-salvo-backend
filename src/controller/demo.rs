@@ -1,5 +1,6 @@
-use rocket_db_pools::Connection;
-use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
+use std::time::Duration;
+use deadpool_redis::Pool;
+use redis::{AsyncCommands, ExistenceCheck, SetExpiry, SetOptions};
 use rocket::{Config, State};
 
 use crate::common::constant::cache::token2key;
@@ -11,22 +12,33 @@ use crate::framework::rocket::resp::R;
 rocket_base_path!("/demo");
 #[utoipa::path(context_path = BASE)]
 #[get("/redis")]
-pub async fn redis_demo(mut redis_cache: Connection<RedisCache>) -> R {
+pub async fn redis(mut redis_pool: &State<Pool>) -> R {
     let user = User::default();
 
     let claim = UserClaim::new();
 
     let token = UserClaim::sign(claim);
 
-    redis_cache.set_ex(token2key(&token), user, 60).await?;
+    let mut conn = redis_pool.get().await?;
 
-    // sleep(Duration::from_secs(2)).await;
+    conn.set_ex(token2key(&token), user, 60).await?;
 
-    // let val: String = redis_cache.get("key").await?;
-    let val: Option<User> = redis_cache.get(token2key(&token)).await?;
+    let val: Option<User> = conn.get(token2key(&token)).await?;
     println!("redis get: {:?}", val);
-    let val: bool = redis_cache.exists(token2key(&token)).await?;
+    let val: bool = conn.exists(token2key(&token)).await?;
     println!("redis ext: {:?}", val);
+
+    // 原子设置nx 过期
+    let opts = SetOptions::default()
+        .conditional_set(ExistenceCheck::NX)
+        .with_expiration(SetExpiry::EX(1));
+
+    let mut success: bool = conn.set_options("key", "value", opts).await?;
+    println!("{success}");
+    // tokio::time::sleep(Duration::from_secs(1)).await;
+
+    success = conn.set_options("key", "value", opts).await?;
+    println!("{success}");
 
 
     R::no_val_success()
