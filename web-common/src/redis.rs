@@ -1,6 +1,7 @@
 use deadpool_redis::Config;
 use rocket::fairing::AdHoc;
-use crate::common::utils::config::get_config;
+
+use crate::core::utils::config::get_config;
 
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("init redis pool", |rocket| async {

@@ -3,11 +3,13 @@ use deadpool_redis::Pool;
 use redis::{AsyncCommands, ExistenceCheck, SetExpiry, SetOptions};
 use rocket::{Config, State};
 
-use crate::common::constant::cache::token2key;
+use web_common::core::constant::cache::token2key;
 use crate::domain::user::User;
-use crate::framework::jwt::UserClaim;
-use crate::framework::rocket::AppConfig;
-use crate::framework::rocket::resp::R;
+use web_common::{
+    jwt::UserClaim,
+    core::resp::R,
+};
+use web_common::core::AppConfig;
 
 rocket_base_path!("/demo");
 #[utoipa::path(context_path = BASE)]

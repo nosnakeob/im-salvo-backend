@@ -1,5 +1,5 @@
 use rocket::http::Status;
-use crate::framework::rocket::resp::Resp;
+use web_common::core::resp::Resp;
 use crate::test::get_client;
 
 #[test]

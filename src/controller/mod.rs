@@ -1,4 +1,4 @@
-use crate::framework::rocket::resp::R;
+use web_common::core::resp::R;
 
 pub mod auth;
 pub mod chat;

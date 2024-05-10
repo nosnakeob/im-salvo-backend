@@ -1,4 +1,10 @@
-workspace = { members = ["web-codegen"] }
+[workspace]
+members = [
+    "web-codegen",
+    "web-common"
+]
+resolver = "2"
+
 [package]
 name = "learn-rocket"
 version = "0.1.0"
@@ -6,12 +12,49 @@ edition = "2021"
 
 [dependencies]
 web-codegen = { path = "web-codegen" }
+web-common = { path = "web-common" }
 
+tokio = { workspace = true }
+
+# web框架
+rocket = { workspace = true }
+rocket_ws = { workspace = true }
+
+# 数据库
+redis = { workspace = true }
+deadpool-redis = { workspace = true }
+redis-macros = { workspace = true }
+
+rbs = { workspace = true }
+rbatis = { workspace = true }
+rbdc-pg = { workspace = true }
+
+# 序列化
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# 懒加载
+once_cell = { workspace = true }
+
+# 登录认证
+jsonwebtoken = { workspace = true }
+rocket-jwt = { workspace = true }
+
+# 文档
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+
+derive-new = { workspace = true }
+
+anyhow = { workspace = true }
+
+
+[workspace.dependencies]
 # 异步模型
 tokio = "1.37"
 
 # web框架
-rocket = { version = "0.5", features = ["json", "uuid"] }
+rocket = { version = "0.5", features = ["json", "uuid", "secrets"] }
 rocket_ws = "0.1"
 
 # 数据库

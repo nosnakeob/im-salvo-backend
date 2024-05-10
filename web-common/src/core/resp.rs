@@ -82,6 +82,6 @@ impl<E: Error> FromResidual<Result<Infallible, E>> for R {
 #[macro_export]
 macro_rules! bail {
     ($e:expr) => {
-        return R::fail($e);
+        return R::fail($e)
     };
 }

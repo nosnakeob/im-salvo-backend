@@ -8,7 +8,7 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::common::constant::cache::token2key;
+use web_common::core::constant::cache::token2key;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone, ToRedisArgs, FromRedisValue)]
 pub struct User {

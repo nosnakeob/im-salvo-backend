@@ -3,12 +3,16 @@ use redis::AsyncCommands;
 use rocket::serde::json::{Json, json};
 use rocket::State;
 
-use crate::bail;
-use crate::common::constant::cache::token2key;
-use crate::common::utils;
+use web_common::{
+    bail,
+    core::{
+        resp::R,
+        constant::cache::token2key,
+        utils,
+    },
+};
+use web_common::jwt::UserClaim;
 use crate::domain::user::User;
-use crate::framework::jwt::UserClaim;
-use crate::framework::rocket::resp::R;
 
 rocket_base_path!("/auth");
 

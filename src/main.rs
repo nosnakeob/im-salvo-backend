@@ -1,4 +1,3 @@
-#![feature(try_trait_v2)]
 #[macro_use]
 extern crate rbatis;
 #[macro_use]
@@ -7,10 +6,9 @@ extern crate rocket;
 extern crate web_codegen;
 
 use rocket::fairing::AdHoc;
-use crate::framework::rocket::AppConfig;
+use web_common::core::AppConfig;
 
 mod domain;
-mod common;
 mod controller;
 mod framework;
 mod mapper;
@@ -22,11 +20,11 @@ mod test;
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .attach(framework::rbatis::stage())
+        .attach(web_common::rbatis::stage())
         .attach(framework::swagger::stage())
-        .attach(framework::rocket::catcher::stage())
-        .attach(framework::websocket::stage())
-        .attach(framework::redis::stage())
+        .attach(web_common::core::catcher::stage())
+        .attach(web_common::websocket::stage())
+        .attach(web_common::redis::stage())
         .attach(AdHoc::config::<AppConfig>())
 }
 

@@ -1,9 +1,11 @@
 use serde::Deserialize;
 use self::config::DataBaseConfig;
 
+mod config;
 pub mod catcher;
 pub mod resp;
-mod config;
+pub mod utils;
+pub mod constant;
 
 
 #[derive(Debug, Deserialize)]

@@ -1,15 +1,20 @@
 use md5::compute;
 
-pub fn encode<S: Into<String>>(raw_password: S) -> String {
-    let digest = compute(raw_password.into());
+pub fn encode(raw_password: &str) -> String {
+    let digest = compute(raw_password);
     format!("{:x}", digest)
 }
 
-pub fn verify<S: Into<String>, U: Into<String>>(password: S, raw_password: U) -> bool {
+pub fn verify(password: &str, raw_password: &str) -> bool {
     let hashed = encode(raw_password);
-    password.into() == hashed
+    password == hashed
 }
 
+#[test]
+fn t() {
+    println!("{}", "123" == "123");
+    println!("{}", String::from("123") == "123");
+}
 
 #[test]
 fn test_encode() {
@@ -28,5 +33,5 @@ fn test_verify() {
 
     assert!(!verify(password, raw_password));
 
-    assert!(verify(encode(password), raw_password));
+    assert!(verify(&encode(password), raw_password));
 }

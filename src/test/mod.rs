@@ -1,10 +1,11 @@
 use rocket::http::Status;
 use rocket::local::blocking::Client;
-use crate::framework::rocket::resp::Resp;
+use web_common::core::resp::Resp;
 
 use crate::rocket;
 
 mod auth;
+mod demo;
 
 fn get_client() -> Client {
     Client::tracked(rocket()).unwrap()

@@ -4,8 +4,9 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::controller::*;
 use crate::domain::user::User;
-use crate::framework::rocket::resp::R;
+use web_common::core::resp::R;
 
+// todo move to web-common
 #[derive(OpenApi)]
 #[openapi(
 paths(

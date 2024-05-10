@@ -4,11 +4,15 @@ use rocket::futures::{StreamExt, TryStreamExt};
 use rocket::futures::channel::mpsc;
 use rocket::State;
 use rocket::tokio::try_join;
-use rocket_ws::{Channel, Message, WebSocket};
-use rocket_ws::frame::{CloseCode, CloseFrame};
+use rocket_ws::{
+    Channel, Message, WebSocket,
+    frame::{CloseCode, CloseFrame},
+};
 
-use crate::framework::rocket::resp::R;
-use crate::framework::websocket::ClientMap;
+use web_common::{
+    core::resp::R,
+    websocket::ClientMap,
+};
 
 rocket_base_path!("/chat");
 

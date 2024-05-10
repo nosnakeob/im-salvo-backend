@@ -1,6 +1,6 @@
 use rocket::http::{Header, Status};
 use crate::domain::user::User;
-use crate::framework::rocket::resp::Resp;
+use web_common::core::resp::Resp;
 use crate::test::get_client;
 
 #[test]
@@ -10,13 +10,15 @@ fn register() {
         .json(&User::default())
         .dispatch();
 
-    if resp.status() != Status::Ok {
+    let status = resp.status();
+
+    if status != Status::Ok {
         println!("{:#?}", resp.into_json::<Resp>().unwrap());
     }
 
     // 首次注册
     // assert_eq!(resp.status(), Status::Ok);
-    assert_eq!(resp.status(), Status::BadRequest);
+    assert_eq!(status, Status::BadRequest);
 }
 
 
