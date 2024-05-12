@@ -1,5 +1,4 @@
 use std::convert::Infallible;
-use std::error::Error;
 use std::ops::FromResidual;
 
 use rocket::http::Status;
@@ -73,7 +72,7 @@ impl R {
 
 
 // accept `?`
-impl<E: Error> FromResidual<Result<Infallible, E>> for R {
+impl<E: ToString> FromResidual<Result<Infallible, E>> for R {
     fn from_residual(residual: Result<Infallible, E>) -> Self {
         R::Err(Resp::new(Status::InternalServerError, Some(residual.unwrap_err().to_string()), None::<Value>))
     }
@@ -82,6 +81,6 @@ impl<E: Error> FromResidual<Result<Infallible, E>> for R {
 #[macro_export]
 macro_rules! bail {
     ($e:expr) => {
-        return R::fail($e)
+        return $crate::core::resp::R::fail($e)
     };
 }

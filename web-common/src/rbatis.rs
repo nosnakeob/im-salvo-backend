@@ -8,7 +8,7 @@ use rbdc_pg::PgDriver;
 use rbs::Value;
 use rocket::fairing::AdHoc;
 
-use crate::common::utils::config::get_config;
+use crate::core::utils::config::get_config;
 
 
 #[derive(Debug)]
