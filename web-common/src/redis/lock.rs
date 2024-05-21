@@ -8,7 +8,9 @@ use redis::{AsyncCommands, ExistenceCheck, SetExpiry, SetOptions};
 use rocket::{Request, State};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
-use tokio::task::JoinHandle;
+use tokio::sync::oneshot;
+use tokio::sync::oneshot::error::TryRecvError;
+use tokio::sync::oneshot::Sender;
 
 // 异步锁
 #[derive(Clone)]
@@ -24,7 +26,7 @@ pub struct RedisMutex {
     expire: Duration,
 
     // 续约 key:dog
-    watchdogs: Arc<Mutex<HashMap<String, JoinHandle<Result<()>>>>>,
+    watchdogs: Arc<Mutex<HashMap<String, Sender<()>>>>,
 }
 
 unsafe impl Send for RedisMutex {}
@@ -73,18 +75,23 @@ impl RedisMutex {
 
                 // 成功申请锁
                 if self.try_lock(key).await? {
+                    // 创建看门狗任务
+                    let (tx, mut rx) = oneshot::channel();
+                    self.watchdogs.lock().unwrap().insert(key.to_string(), tx);
+
                     let expire = self.expire.as_secs();
                     let pool = self.redis_pool.clone();
                     let key_str = key.to_string();
 
-                    self.watchdogs.lock().unwrap().insert(key.to_string(), tokio::spawn(async move {
+                    tokio::spawn(async move {
                         let mut interval = tokio::time::interval(Duration::from_secs(expire / 3));
-                        loop {
-                            interval.tick().await;
+                        while rx.try_recv() == Err(TryRecvError::Empty) {
                             // renew
-                            let _: () = pool.get().await?.expire(&key_str, expire as i64).await?;
+                            let _: () = pool.get().await.unwrap().expire(&key_str, expire as i64).await.unwrap();
+
+                            interval.tick().await;
                         }
-                    }));
+                    });
 
                     return Ok(());
                 }
@@ -93,11 +100,11 @@ impl RedisMutex {
     }
 
     pub async fn unlock(&mut self, key: &str) -> Result<()> {
-        self.redis_pool.get().await?.del(key).await?;
-
-        if let Some(watchdog) = self.watchdogs.lock().unwrap().remove(key) {
-            watchdog.abort();
+        if let Some(tx) = self.watchdogs.lock().unwrap().remove(key) {
+            tx.send(()).unwrap();
         }
+
+        self.redis_pool.get().await?.del(key).await?;
 
         Ok(())
     }
