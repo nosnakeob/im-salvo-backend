@@ -6,8 +6,12 @@ edition = "2021"
 
 [dependencies]
 tokio = { workspace = true }
+tokio-util = "0.7"
+
 anyhow = { workspace = true }
 
 hyper = { version = "1", features = ["full"] }
 http-body-util = "0.1"
 hyper-util = { version = "0.1", features = ["full"] }
+
+futures-util = "0.3"

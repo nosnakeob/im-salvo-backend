@@ -1,38 +1,32 @@
 #[macro_use]
 extern crate tokio;
 
+use std::net::SocketAddr;
+
 use anyhow::Result;
 use http_body_util::BodyExt;
 use http_body_util::combinators::BoxBody;
-use hyper::{client, Request, Response};
+use hyper::{Method, Request, Response};
 use hyper::body::{Bytes, Incoming};
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper_util::rt::TokioIo;
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 
-async fn proxy(req: Request<Incoming>) -> Result<Response<BoxBody<Bytes, hyper::Error>>> {
-    // println!("{:#?}", req);
-    // println!("{}", req.method());
-    // req.version()
+use crate::handlers::proxy::proxy;
+use crate::handlers::static_file::static_file;
 
-    let stream = TcpStream::connect("localhost:8000").await?;
-    let io = TokioIo::new(stream);
+mod http;
+mod handlers;
 
-    let (mut sender, conn) = client::conn::http1::Builder::new()
-        .preserve_header_case(true)
-        .title_case_headers(true)
-        .handshake(io)
-        .await?;
+async fn handle_request(req: Request<Incoming>) -> Result<Response<BoxBody<Bytes, anyhow::Error>>> {
+    // println!("req: {:#?}", req);
 
-    tokio::spawn(async move {
-        if let Err(err) = conn.await {
-            println!("Connection failed: {:?}", err);
-        }
-    });
-
-    let resp = sender.send_request(req).await?;
-    Ok(resp.map(|b| b.boxed()))
+    if req.method() == Method::GET && req.uri().path().contains(".") {
+        static_file(req).await
+    } else {
+        proxy(req).await
+    }
 }
 
 #[tokio::main]
@@ -50,7 +44,7 @@ async fn main() -> Result<()> {
 
                 tokio::spawn(async move {
                     if let Err(err) = http1::Builder::new()
-                        .serve_connection(TokioIo::new(stream), service_fn(proxy))
+                        .serve_connection(TokioIo::new(stream), service_fn(handle_request))
                         .await
                     {
                         println!("Failed to serve connection: {:?}", err);
