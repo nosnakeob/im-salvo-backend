@@ -4,6 +4,7 @@ extern crate tokio;
 use std::net::SocketAddr;
 
 use anyhow::Result;
+use config::Config;
 use http_body_util::BodyExt;
 use http_body_util::combinators::BoxBody;
 use hyper::{Method, Request, Response};
@@ -31,9 +32,15 @@ async fn handle_request(req: Request<Incoming>) -> Result<Response<BoxBody<Bytes
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let listener = TcpListener::bind("localhost:80").await?;
+    let config = Config::builder()
+        .add_source(config::File::with_name("web-proxy/Config"))
+        .build()?;
 
-    println!("Listening on: http://localhost:80");
+    let addr = SocketAddr::from(([127, 0, 0, 1], config.get("port")?));
+
+    let listener = TcpListener::bind(addr).await?;
+
+    println!("Listening on: http://{}", addr);
 
     select! {
         _ = async {
