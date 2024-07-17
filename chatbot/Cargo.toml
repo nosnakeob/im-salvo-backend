@@ -1,0 +1,19 @@
+[package]
+name = "chatbot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cudarc = { version = "0.11", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features = false }
+
+candle-core = { version = "0.6", features = ["cuda"] }
+candle-transformers = { version = "0.6", features = ["cuda"] }
+hf-hub = { version = "0.3", features = ["tokio"] }
+tokenizers = "0.19"
+
+anyhow = {workspace = true}
+
+tokio = {workspace = true}
+
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true}

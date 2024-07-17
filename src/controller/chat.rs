@@ -16,6 +16,8 @@ use web_common::{
 
 rocket_base_path!("/chat");
 
+/// 建立WebSocket连接, 全局聊天室
+/// api文档不能WebSocket连接时发token, 所以这里用id来代替token
 #[get("/connect/<id>")]
 pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Channel<'_> {
     ws.channel(move |stream| Box::pin(async move {
@@ -27,6 +29,7 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
 
         clients.read().unwrap().iter().for_each(|(_, sender)| sender.unbounded_send(Message::Text(format!("{} 已上线", id))).unwrap());
 
+        // 接收用户消息, 广播给其他用户
         let broadcast = read.try_for_each(|msg| {
             match msg {
                 Message::Text(_) => {
@@ -76,4 +79,27 @@ pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
 #[get("/status")]
 pub async fn status(clients: &State<ClientMap>) -> R {
     R::success(clients.read().unwrap().keys().collect::<Vec<_>>())
+}
+
+/// 聊天机器人
+#[utoipa::path(context_path = BASE)]
+#[get("/connect_bot/<id>")]
+pub async fn connect_bot(ws: WebSocket, id: u32) -> Channel<'static> {
+    ws.channel(move |mut stream| Box::pin(async move {
+        let mut bot = ChatBot::from_default_args().await.unwrap();
+
+        while let Some(Ok(Message::Text(msg))) = stream.next().await {
+            // stream.send(msg).await?;
+            let mut rx = bot.chat(msg);
+
+            let cap = 32;
+            let mut buf = Vec::with_capacity(cap);
+            while rx.recv_many(&mut buf, cap).await > 0 {
+                stream.send(Message::Text(buf.join(""))).await?;
+                buf.clear();
+            }
+        }
+
+        Ok(())
+    }))
 }
