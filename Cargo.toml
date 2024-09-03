@@ -15,7 +15,7 @@ edition = "2021"
 [dependencies]
 web-codegen = { path = "web-codegen" }
 web-common = { path = "web-common" }
-chatbot = { path = "chatbot" }
+openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
 tokio = { workspace = true }
 
