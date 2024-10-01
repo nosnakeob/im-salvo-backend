@@ -1,52 +1,44 @@
 use std::future;
-
-use rocket::futures::{StreamExt, TryStreamExt};
-use rocket::futures::channel::mpsc;
+use rocket::futures::{SinkExt, StreamExt, TryStreamExt};
+use rocket::futures::channel::mpsc::unbounded;
 use rocket::State;
 use rocket::tokio::try_join;
 use rocket_ws::{
     Channel, Message, WebSocket,
     frame::{CloseCode, CloseFrame},
 };
-
+use openchat_bot::ChatBot;
+use tokio::sync::broadcast::Sender;
+use tokio_stream::wrappers::BroadcastStream;
 use web_common::{
     core::resp::R,
-    websocket::ClientMap,
 };
 
 rocket_base_path!("/chat");
 
+
 /// 建立WebSocket连接, 全局聊天室
 /// api文档不能WebSocket连接时发token, 所以这里用id来代替token
 #[get("/connect/<id>")]
-pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Channel<'_> {
+pub async fn connect(ws: WebSocket, id: u32, tx: &State<Sender<Message>>) -> Channel<'_> {
     ws.channel(move |stream| Box::pin(async move {
-        let (sender, receiver) = mpsc::unbounded();
+        let tx = &**tx;
+        let (sender, receiver) = (tx.clone(), BroadcastStream::new(tx.subscribe()));
 
         let (write, read) = stream.split();
 
-        clients.write().unwrap().insert(id, sender);
-
-        clients.read().unwrap().iter().for_each(|(_, sender)| sender.unbounded_send(Message::Text(format!("{} 已上线", id))).unwrap());
+        sender.send(Message::Text(format!("{} 已上线", id))).unwrap();
 
         // 接收用户消息, 广播给其他用户
-        let broadcast = read.try_for_each(|msg| {
+        let broadcast_task = read.try_for_each(|msg| {
             match msg {
                 Message::Text(_) => {
-                    clients.read().unwrap().iter()
-                        .filter(|(&mid, _)| id != mid)
-                        .for_each(|(_, sender)| sender.unbounded_send(msg.clone()).unwrap());
+                    sender.send(msg).unwrap();
                 }
                 Message::Close(close_msg) => {
                     println!("{:?}", close_msg);
 
-                    let mut guard = clients.write().unwrap();
-
-                    guard.remove(&id);
-
-                    guard.iter().for_each(|(_, sender)|
-                        sender.unbounded_send(Message::Text(format!("{} 已下线", id))).unwrap()
-                    );
+                    sender.send(Message::Text(format!("{} 已下线", id))).unwrap();
                 }
                 _ => {}
             }
@@ -54,34 +46,38 @@ pub async fn connect(ws: WebSocket, id: u32, clients: &State<ClientMap>) -> Chan
             future::ready(Ok(()))
         });
 
-        let recv = receiver.map(Ok).forward(write);
+        // 接收其他用户消息, 转发给用户
+        let forward_task = receiver
+            .filter_map(|msg| future::ready(msg.ok()))
+            .map(Ok)
+            .forward(write);
 
-        if let Err(err) = try_join!(broadcast, recv) {
+        // todo check alive
+
+        if let Err(err) = try_join!(broadcast_task, forward_task) {
             eprintln!("{}", err);
 
-            clients.write().unwrap().remove(&id);
-
-            println!("{} disconnect", id);
+            info!("{} disconnect", id);
         }
 
         Ok(())
     }))
 }
 
-#[utoipa::path(context_path = BASE)]
-#[delete("/<id>")]
-pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
-    clients.read().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
-    R::no_val_success()
-}
+// #[utoipa::path(context_path = BASE)]
+// #[delete("/<id>")]
+// pub async fn kick(id: u32, clients: &State<ClientMap>) -> R {
+//     clients.read().unwrap()[&id].unbounded_send(Message::Close(Some(CloseFrame { code: CloseCode::Normal, reason: "管理员踢出".into() }))).unwrap();
+//     R::no_val_success()
+// }
 
-#[utoipa::path(context_path = BASE)]
-#[get("/status")]
-pub async fn status(clients: &State<ClientMap>) -> R {
-    R::success(clients.read().unwrap().keys().collect::<Vec<_>>())
-}
+// #[utoipa::path(context_path = BASE)]
+// #[get("/status")]
+// pub async fn status(clients: &State<ClientMap>) -> R {
+//     R::success(clients.read().unwrap().keys().collect::<Vec<_>>())
+// }
 
-/// 聊天机器人
+// 聊天机器人
 #[utoipa::path(context_path = BASE)]
 #[get("/connect_bot/<id>")]
 pub async fn connect_bot(ws: WebSocket, id: u32) -> Channel<'static> {
@@ -89,7 +85,6 @@ pub async fn connect_bot(ws: WebSocket, id: u32) -> Channel<'static> {
         let mut bot = ChatBot::from_default_args().await.unwrap();
 
         while let Some(Ok(Message::Text(msg))) = stream.next().await {
-            // stream.send(msg).await?;
             let mut rx = bot.chat(msg);
 
             let cap = 32;

@@ -40,7 +40,6 @@ pub fn _auto_mount(dir: String, func: &mut ItemFn) {
     if let (Some(Expr(MethodCall(method), _)), Ok(mut entry)) =
         (func.block.stmts.last_mut(), fs::read_dir(&dir)) {
         while let Some(Ok(f)) = entry.next() {
-            // let route_path = path2module_path(&mut f.path()) + "::routes()";
             let route_path = proc_macro2::TokenStream::from_str(path2module_path(&mut f.path()).add("::routes()").as_str()).unwrap();
 
             *method = parse_quote! { #method

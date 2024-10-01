@@ -5,13 +5,9 @@ extern crate quote;
 extern crate syn;
 
 use proc_macro::{Span, TokenStream};
-use std::ops::Add;
-use std::str::FromStr;
 
 use syn::{ItemFn, LitStr};
 use syn::parse_quote;
-use syn::visit::Visit;
-use syn::visit_mut::VisitMut;
 
 use crate::connection::{_rb_conn, _transaction};
 use crate::route::{_auto_mount, _rocket_base_path};
