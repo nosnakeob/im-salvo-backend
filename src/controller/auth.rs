@@ -1,6 +1,8 @@
+use web_common::jwt::UserClaim;
+use serde_json::json;
 use deadpool_redis::Pool;
 use redis::AsyncCommands;
-use rocket::serde::json::{Json, json};
+use rocket::serde::json::Json;
 use rocket::State;
 
 use web_common::{
@@ -11,31 +13,29 @@ use web_common::{
         utils,
     },
 };
-use web_common::jwt::UserClaim;
 use crate::domain::user::User;
 
 rocket_base_path!("/auth");
 
-#[rb_conn]
+#[rbatis_conn]
 #[utoipa::path(context_path = BASE)]
 #[post("/register", data = "<register_user>")]
 pub async fn register(mut register_user: Json<User>) -> R {
     let user = User::select_by_name(&register_user.username).await?;
 
-    if user.is_none() {
+    if user.is_some() {
         bail!("username exists");
     }
 
     register_user.password = utils::password::encode(&register_user.password);
 
-    let data = User::insert(&register_user).await?;
-
-    println!("{:?}", data);
+    User::insert(&register_user).await?;
 
     R::no_val_success()
 }
 
-#[rb_conn]
+
+#[rbatis_conn]
 #[utoipa::path(context_path = BASE)]
 #[post("/login", data = "<login_user>")]
 pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
@@ -59,9 +59,8 @@ pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
     R::success(json!({ "token": token }))
 }
 
-
 #[utoipa::path(context_path = BASE)]
 #[get("/check")]
-pub async fn check(_user: User) -> R {
-    R::no_val_success()
+pub async fn check(user: User) -> R {
+    R::success(json!({ "user": user }))
 }

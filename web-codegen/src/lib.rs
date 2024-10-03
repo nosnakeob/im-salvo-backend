@@ -64,7 +64,7 @@ pub fn loggedin(_attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn rb_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn rbatis_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut func = parse_macro_input!(item as ItemFn);
 
     _rb_conn(&mut func);

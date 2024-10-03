@@ -4,13 +4,13 @@ use std::ops::Add;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use syn::{ItemFn, LitStr, parse_file};
+use syn::visit::Visit;
 use syn::Expr::MethodCall;
 use syn::Stmt::Expr;
-use syn::visit::Visit;
+use syn::{parse_file, ItemFn, LitStr};
 
 use crate::utils::path2module_path;
-use crate::visitor::RocketRouteFnVisitor;
+use crate::visitor::route::RocketRouteFnVisitor;
 
 pub fn _rocket_base_path(base_path: LitStr, source_path: PathBuf) -> TokenStream {
     let content = fs::read_to_string(source_path).unwrap();
