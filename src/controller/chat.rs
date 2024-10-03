@@ -1,6 +1,5 @@
 use std::future;
 use rocket::futures::{SinkExt, StreamExt, TryStreamExt};
-use rocket::futures::channel::mpsc::unbounded;
 use rocket::State;
 use rocket::tokio::try_join;
 use rocket_ws::{
@@ -8,11 +7,10 @@ use rocket_ws::{
     frame::{CloseCode, CloseFrame},
 };
 use openchat_bot::ChatBot;
+use redis::{AsyncCommands, Client, Commands};
 use tokio::sync::broadcast::Sender;
 use tokio_stream::wrappers::BroadcastStream;
-use web_common::{
-    core::resp::R,
-};
+use web_common::core::resp::R;
 
 rocket_base_path!("/chat");
 
@@ -20,25 +18,26 @@ rocket_base_path!("/chat");
 /// 建立WebSocket连接, 全局聊天室
 /// api文档不能WebSocket连接时发token, 所以这里用id来代替token
 #[get("/connect/<id>")]
-pub async fn connect(ws: WebSocket, id: u32, tx: &State<Sender<Message>>) -> Channel<'_> {
+pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Channel<'_> {
     ws.channel(move |stream| Box::pin(async move {
-        let tx = &**tx;
-        let (sender, receiver) = (tx.clone(), BroadcastStream::new(tx.subscribe()));
-
         let (write, read) = stream.split();
 
-        sender.send(Message::Text(format!("{} 已上线", id))).unwrap();
+        let (mut rsink, mut rstream) = redis_client.get_async_pubsub().await.unwrap().split();
+        rsink.subscribe("global room").await.unwrap();
+
+        let mut conn = redis_client.get_connection().unwrap();
+        let _: () = conn.publish("global room", format!("{} 已上线", id)).unwrap();
 
         // 接收用户消息, 广播给其他用户
         let broadcast_task = read.try_for_each(|msg| {
             match msg {
-                Message::Text(_) => {
-                    sender.send(msg).unwrap();
+                Message::Text(msg) => {
+                    let _: () = conn.publish("global room", msg).unwrap();
                 }
                 Message::Close(close_msg) => {
                     println!("{:?}", close_msg);
 
-                    sender.send(Message::Text(format!("{} 已下线", id))).unwrap();
+                    let _: () = conn.publish("global room", format!("{} 已下线", id)).unwrap();
                 }
                 _ => {}
             }
@@ -46,10 +45,9 @@ pub async fn connect(ws: WebSocket, id: u32, tx: &State<Sender<Message>>) -> Cha
             future::ready(Ok(()))
         });
 
-        // 接收其他用户消息, 转发给用户
-        let forward_task = receiver
-            .filter_map(|msg| future::ready(msg.ok()))
-            .map(Ok)
+        // 订阅通道转发给websocket流
+        let forward_task = rstream
+            .map(|msg| Ok(Message::Text(msg.get_payload().unwrap())))
             .forward(write);
 
         // todo check alive
