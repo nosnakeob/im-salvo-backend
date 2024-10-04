@@ -23,16 +23,13 @@ mod test;
 #[auto_mount("src/controller")]
 // #[rocket::launch]
 pub fn build_rocket() -> Rocket<Build> {
-    let cors = CorsOptions::default().to_cors().unwrap();
-
     rocket::build()
         .attach(web_common::rbatis::stage())
         .attach(framework::swagger::stage())
         .attach(web_common::core::catcher::stage())
-        .attach(framework::chat::stage())
         .attach(web_common::redis::stage())
         .attach(AdHoc::config::<AppConfig>())
-        .attach(cors)
+        .attach(CorsOptions::default().to_cors().unwrap())
 }
 
 // 用main才能优雅停机

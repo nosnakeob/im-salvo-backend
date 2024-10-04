@@ -28,6 +28,19 @@ impl Default for User {
     }
 }
 
+fn extract_token(req: &Request) -> Option<String> {
+    // header Authorization: Bearer token
+    req.headers().get_one("Authorization")
+        .and_then(|auth| auth.strip_prefix("Bearer "))
+        .map(|token| token.to_string())
+        // query ?Authorization=Bearer token
+        .or(req.uri().query().and_then(|query|
+            query.split('&')
+                .filter_map(|s| s.strip_prefix("Authorization=Bearer%20"))
+                .map(|s| s.to_string())
+                .last()
+        ))
+}
 
 #[async_trait]
 impl<'r> FromRequest<'r> for User {
@@ -37,23 +50,11 @@ impl<'r> FromRequest<'r> for User {
         let redis_pool: &State<Pool> = req.guard().await.unwrap();
         let mut conn = redis_pool.get().await.unwrap();
 
-        // header Authorization: Bearer token
-        if let Some(token) = req.headers().get_one("Authorization")
-            .and_then(|auth| auth.strip_prefix("Bearer "))
-            .map(|token| token.to_string())
-            // query ?Authorization=Bearer token
-            .or(req.uri().query().and_then(|query|
-                query.split('&')
-                    .filter_map(|s| s.strip_prefix("Authorization=Bearer%20"))
-                    .map(|s| s.to_string())
-                    .last()
-            ))
-        {
+        if let Some(token) = extract_token(req) {
             if let Ok(user) = conn.get(token2key(token)).await {
                 return Outcome::Success(user);
             };
         }
-
 
         Outcome::Error((Status::Unauthorized, ()))
     }

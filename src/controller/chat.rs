@@ -8,17 +8,17 @@ use rocket_ws::{
 };
 use openchat_bot::ChatBot;
 use redis::{AsyncCommands, Client, Commands};
-use tokio::sync::broadcast::Sender;
 use tokio_stream::wrappers::BroadcastStream;
 use web_common::core::resp::R;
+use crate::domain::user::User;
 
 rocket_base_path!("/chat");
 
 
 /// 建立WebSocket连接, 全局聊天室
 /// api文档不能WebSocket连接时发token, 所以这里用id来代替token
-#[get("/connect/<id>")]
-pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Channel<'_> {
+#[get("/connect")]
+pub async fn connect(ws: WebSocket, user: User, redis_client: &State<Client>) -> Channel<'_> {
     ws.channel(move |stream| Box::pin(async move {
         let (write, read) = stream.split();
 
@@ -26,7 +26,7 @@ pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Ch
         rsink.subscribe("global room").await.unwrap();
 
         let mut conn = redis_client.get_connection().unwrap();
-        let _: () = conn.publish("global room", format!("{} 已上线", id)).unwrap();
+        let _: () = conn.publish("global room", format!("{} 已上线", user.username)).unwrap();
 
         // 接收用户消息, 广播给其他用户
         let broadcast_task = read.try_for_each(|msg| {
@@ -37,7 +37,7 @@ pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Ch
                 Message::Close(close_msg) => {
                     println!("{:?}", close_msg);
 
-                    let _: () = conn.publish("global room", format!("{} 已下线", id)).unwrap();
+                    let _: () = conn.publish("global room", format!("{} 已下线", user.username)).unwrap();
                 }
                 _ => {}
             }
@@ -47,7 +47,9 @@ pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Ch
 
         // 订阅通道转发给websocket流
         let forward_task = rstream
-            .map(|msg| Ok(Message::Text(msg.get_payload().unwrap())))
+            .filter_map(|msg| future::ready(msg.get_payload().ok()))
+            .map(Message::Text)
+            .map(Ok)
             .forward(write);
 
         // todo check alive
@@ -55,7 +57,7 @@ pub async fn connect(ws: WebSocket, id: u32, redis_client: &State<Client>) -> Ch
         if let Err(err) = try_join!(broadcast_task, forward_task) {
             eprintln!("{}", err);
 
-            info!("{} disconnect", id);
+            info!("{} disconnect", user.username);
         }
 
         Ok(())
