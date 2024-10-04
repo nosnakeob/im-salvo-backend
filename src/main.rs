@@ -5,10 +5,11 @@ extern crate rocket;
 #[macro_use]
 extern crate web_codegen;
 
-use rocket::fairing::AdHoc;
-use web_common::core::AppConfig;
 use anyhow::Result;
+use rocket::fairing::AdHoc;
 use rocket::{Build, Rocket};
+use rocket_cors::CorsOptions;
+use web_common::core::AppConfig;
 
 mod domain;
 mod controller;
@@ -22,6 +23,8 @@ mod test;
 #[auto_mount("src/controller")]
 // #[rocket::launch]
 pub fn build_rocket() -> Rocket<Build> {
+    let cors = CorsOptions::default().to_cors().unwrap();
+
     rocket::build()
         .attach(web_common::rbatis::stage())
         .attach(framework::swagger::stage())
@@ -29,6 +32,7 @@ pub fn build_rocket() -> Rocket<Build> {
         .attach(framework::chat::stage())
         .attach(web_common::redis::stage())
         .attach(AdHoc::config::<AppConfig>())
+        .attach(cors)
 }
 
 // 用main才能优雅停机

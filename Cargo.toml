@@ -18,9 +18,11 @@ web-common = { path = "web-common" }
 openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
 tokio = { workspace = true }
+tokio-stream = { workspace = true }
 
 rocket = { workspace = true }
 rocket_ws = { workspace = true }
+rocket_cors = { workspace = true }
 
 redis = { workspace = true }
 deadpool-redis = { workspace = true }
@@ -51,15 +53,17 @@ tracing = { workspace = true }
 [workspace.dependencies]
 # 异步模型
 tokio = { version = "1.37", features = ["full"] }
+tokio-stream = { version = "0.1.16", features = ["full"] }
 
 # web框架
 rocket = { version = "0.5", features = ["json", "uuid", "secrets"] }
 rocket_ws = "0.1"
+rocket_cors = "0.6"
 
 # 数据库
-redis = { version = "0.25", features = ["tokio-comp"] }
-deadpool-redis = { version = "0.15", features = ["serde", "rt_tokio_1"] }
-redis-macros = "0.3"
+redis = { version = "0.27", features = ["tokio-comp"] }
+deadpool-redis = { version = "0.18", features = ["serde", "rt_tokio_1"] }
+redis-macros = "0.4"
 
 rbs = "4"
 rbatis = "4"
@@ -82,7 +86,7 @@ utoipa-swagger-ui = { version = "7", features = ["rocket"] }
 
 md5 = "0.7"
 
-derive-new = "0.6"
+derive-new = "0.7"
 
 anyhow = "1"
 
