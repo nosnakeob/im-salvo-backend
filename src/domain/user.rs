@@ -51,7 +51,7 @@ impl<'r> FromRequest<'r> for User {
         let mut conn = redis_pool.get().await.unwrap();
 
         if let Some(token) = extract_token(req) {
-            if let Ok(user) = conn.get(token2key(token)).await {
+            if let Ok(user) = conn.get(token2key(&token)).await {
                 return Outcome::Success(user);
             };
         }

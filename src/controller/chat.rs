@@ -10,6 +10,7 @@ use openchat_bot::ChatBot;
 use redis::{AsyncCommands, Client, Commands};
 use tokio_stream::wrappers::BroadcastStream;
 use web_common::core::resp::R;
+use crate::domain::chat::ChatMessage;
 use crate::domain::user::User;
 
 rocket_base_path!("/chat");
@@ -26,18 +27,21 @@ pub async fn connect(ws: WebSocket, user: User, redis_client: &State<Client>) ->
         rsink.subscribe("global room").await.unwrap();
 
         let mut conn = redis_client.get_connection().unwrap();
-        let _: () = conn.publish("global room", format!("{} 已上线", user.username)).unwrap();
+        let _: () = conn.publish("global room", ChatMessage::new(None, format!("{} 已上线", user.username))).unwrap();
 
         // 接收用户消息, 广播给其他用户
         let broadcast_task = read.try_for_each(|msg| {
             match msg {
                 Message::Text(msg) => {
-                    let _: () = conn.publish("global room", msg).unwrap();
+                    // println!("recv msg: {}", msg);
+                    let mut chat_msg: ChatMessage = serde_json::from_str(&msg).unwrap();
+                    chat_msg.username.get_or_insert(user.username.clone());
+                    let _: () = conn.publish("global room", chat_msg).unwrap();
                 }
                 Message::Close(close_msg) => {
                     println!("{:?}", close_msg);
 
-                    let _: () = conn.publish("global room", format!("{} 已下线", user.username)).unwrap();
+                    let _: () = conn.publish("global room", ChatMessage::new(None, format!("{} 已下线", user.username))).unwrap();
                 }
                 _ => {}
             }

@@ -14,7 +14,7 @@ pub async fn index() -> R {
 }
 
 
-#[rb_conn]
+#[rbatis_conn]
 #[utoipa::path]
 #[get("/pool")]
 pub async fn pool() -> R {
