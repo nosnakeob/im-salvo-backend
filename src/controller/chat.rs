@@ -27,21 +27,23 @@ pub async fn connect(ws: WebSocket, user: User, redis_client: &State<Client>) ->
         rsink.subscribe("global room").await.unwrap();
 
         let mut conn = redis_client.get_connection().unwrap();
-        let _: () = conn.publish("global room", ChatMessage::new(None, format!("{} 已上线", user.username))).unwrap();
+        let _: () = conn.publish("global room", ChatMessage::new_user_online(&user.username)).unwrap();
 
         // 接收用户消息, 广播给其他用户
         let broadcast_task = read.try_for_each(|msg| {
             match msg {
                 Message::Text(msg) => {
                     // println!("recv msg: {}", msg);
-                    let mut chat_msg: ChatMessage = serde_json::from_str(&msg).unwrap();
-                    chat_msg.username.get_or_insert(user.username.clone());
+                    let mut chat_msg = ChatMessage::from_json_str(&msg).unwrap();
+
+                    if let ChatMessage::UserMessage { ref mut username, content } = &mut chat_msg {
+                        username.get_or_insert(user.username.clone());
+                    }
+
                     let _: () = conn.publish("global room", chat_msg).unwrap();
                 }
-                Message::Close(close_msg) => {
-                    println!("{:?}", close_msg);
-
-                    let _: () = conn.publish("global room", ChatMessage::new(None, format!("{} 已下线", user.username))).unwrap();
+                Message::Close(_close_msg) => {
+                    let _: () = conn.publish("global room", ChatMessage::new_user_offline(&user.username)).unwrap();
                 }
                 _ => {}
             }
@@ -59,7 +61,7 @@ pub async fn connect(ws: WebSocket, user: User, redis_client: &State<Client>) ->
         // todo check alive
 
         if let Err(err) = try_join!(broadcast_task, forward_task) {
-            eprintln!("{}", err);
+            // eprintln!("{}", err);
 
             info!("{} disconnect", user.username);
         }
@@ -83,8 +85,8 @@ pub async fn connect(ws: WebSocket, user: User, redis_client: &State<Client>) ->
 
 // 聊天机器人
 #[utoipa::path(context_path = BASE)]
-#[get("/connect_bot/<id>")]
-pub async fn connect_bot(ws: WebSocket, id: u32) -> Channel<'static> {
+#[get("/connect_bot")]
+pub async fn connect_bot(ws: WebSocket, _user: User) -> Channel<'static> {
     ws.channel(move |mut stream| Box::pin(async move {
         let mut bot = ChatBot::from_default_args().await.unwrap();
 
@@ -94,7 +96,8 @@ pub async fn connect_bot(ws: WebSocket, id: u32) -> Channel<'static> {
             let cap = 32;
             let mut buf = Vec::with_capacity(cap);
             while rx.recv_many(&mut buf, cap).await > 0 {
-                stream.send(Message::Text(buf.join(""))).await?;
+                let chat_msg = ChatMessage::new_bot_msg(&buf.join(""));
+                stream.send(Message::Text(chat_msg.to_json_str().unwrap())).await?;
                 buf.clear();
             }
         }
