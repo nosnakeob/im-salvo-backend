@@ -3,7 +3,6 @@ members = [
     "web-codegen",
     "web-common",
     "web-proxy",
-    "chatbot",
 ]
 resolver = "2"
 
@@ -34,8 +33,6 @@ rbdc-pg = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
-
-once_cell = { workspace = true }
 
 jsonwebtoken = { workspace = true }
 rocket-jwt = { workspace = true }
