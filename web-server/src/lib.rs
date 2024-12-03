@@ -18,7 +18,7 @@ pub mod mapper;
 #[cfg(test)]
 pub mod test;
 
-#[auto_mount("web-server/src/controller")]
+#[auto_mount]
 pub fn build_rocket() -> Rocket<Build> {
     rocket::build()
         .attach(web_common::rbatis::stage())

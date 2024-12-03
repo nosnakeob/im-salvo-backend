@@ -92,7 +92,6 @@ pub fn transaction(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn rocket_base_path(input: TokenStream) -> TokenStream {
     let base_path = parse_macro_input!(input as LitStr);
-    // eprintln!("input: {:?}", base_path);
 
     let new_fn = _rocket_base_path(base_path, Span::call_site().source_file().path());
 
@@ -101,13 +100,15 @@ pub fn rocket_base_path(input: TokenStream) -> TokenStream {
     new_fn
 }
 
-// 只支持自动添加当前crate下的路由
+// 约定扫描当前调用宏的文件目录下的controller目录
 #[proc_macro_attribute]
-pub fn auto_mount(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let dir = parse_macro_input!(attr as LitStr).value();
+pub fn auto_mount(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut dir = Span::call_site().source_file().path();
+    dir.pop();
+    dir.push("controller");
     let mut func = parse_macro_input!(item as ItemFn);
 
-    _auto_mount(dir, &mut func);
+    _auto_mount(&dir.to_string_lossy(), &mut func);
 
     let new_fn = quote!( #func );
 

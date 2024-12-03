@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use std::fs;
 use std::ops::Add;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use syn::visit::Visit;
@@ -37,9 +37,9 @@ pub fn _rocket_base_path(base_path: LitStr, source_path: PathBuf) -> TokenStream
     .into()
 }
 
-pub fn _auto_mount(dir: String, func: &mut ItemFn) {
+pub fn _auto_mount(dir: &str, func: &mut ItemFn) {
     if let (Some(Expr(MethodCall(method), _)), Ok(mut entry)) =
-        (func.block.stmts.last_mut(), fs::read_dir(&dir))
+        (func.block.stmts.last_mut(), fs::read_dir(dir))
     {
         while let Some(Ok(f)) = entry.next() {
             let route_path = proc_macro2::TokenStream::from_str(
