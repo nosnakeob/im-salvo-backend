@@ -2,16 +2,17 @@ use std::convert::Infallible;
 use std::ops::FromResidual;
 
 use rocket::http::Status;
-use rocket::Request;
 use rocket::response::Responder;
 use rocket::serde::json::Json;
+use rocket::Request;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value, Value};
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Resp {
-    pub code: Status,
+    #[schema(example = 200)]
+    pub code: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub msg: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,20 +22,18 @@ pub struct Resp {
 impl Resp {
     pub fn new<S: ToString, D: Serialize>(code: Status, msg: Option<S>, data: Option<D>) -> Self {
         Self {
-            code,
+            code: code.code,
             msg: msg.map(|s| s.to_string()),
             data: data.map(|d| to_value(d).unwrap()),
         }
     }
 }
 
-
 impl<'r> Responder<'r, 'static> for Resp {
     fn respond_to(self, request: &'r Request) -> rocket::response::Result<'static> {
         Json(self).respond_to(request)
     }
 }
-
 
 // 全部可能的响应
 #[derive(Debug, Responder, ToSchema)]
@@ -70,11 +69,24 @@ impl R {
     }
 }
 
-
 // accept `?`
 impl<E: ToString> FromResidual<Result<Infallible, E>> for R {
     fn from_residual(residual: Result<Infallible, E>) -> Self {
-        R::Err(Resp::new(Status::InternalServerError, Some(residual.unwrap_err().to_string()), None::<Value>))
+        R::Err(Resp::new(
+            Status::InternalServerError,
+            Some(residual.unwrap_err().to_string()),
+            None::<Value>,
+        ))
+    }
+}
+
+impl FromResidual<Option<Infallible>> for R {
+    fn from_residual(_: Option<Infallible>) -> Self {
+        R::Err(Resp::new(
+            Status::InternalServerError,
+            Some("called `Option::unwrap()` on a `None` value"),
+            None::<Value>,
+        ))
     }
 }
 
