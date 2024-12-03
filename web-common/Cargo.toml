@@ -23,9 +23,6 @@ rbdc-pg = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-# 懒加载
-once_cell = { workspace = true }
-
 # 登录认证
 jsonwebtoken = { workspace = true }
 rocket-jwt = { workspace = true }

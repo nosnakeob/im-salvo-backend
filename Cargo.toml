@@ -44,8 +44,8 @@ jsonwebtoken = "9"
 rocket-jwt = "0.5"
 
 # 文档
-utoipa = { version = "4", features = ["rocket_extras"] }
-utoipa-swagger-ui = { version = "7", features = ["rocket"] }
+utoipa = { version = "5", features = ["rocket_extras"] }
+utoipa-swagger-ui = { version = "8", features = ["rocket"] }
 
 md5 = "0.7"
 derive-new = "0.7"
