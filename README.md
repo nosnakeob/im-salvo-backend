@@ -55,7 +55,7 @@ LeRocket 是一个完整的 Web 后端解决方案，采用 Rust 语言开发，
 ## 快速开始
 
 1. 环境要求
-   - Rust 1.75+
+   - Rust 1.8+
    - PostgreSQL 12+
    - Redis 6+
 
