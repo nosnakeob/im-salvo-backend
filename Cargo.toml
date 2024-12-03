@@ -1,53 +1,22 @@
-[workspace]
-members = [
-    "web-codegen",
-    "web-common",
-    "web-proxy",
-]
-resolver = "2"
-
 [package]
 name = "learn-rocket"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-web-codegen = { path = "web-codegen" }
-web-common = { path = "web-common" }
-openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
+[workspace]
+members = [
+    "web-server",
+    "web-codegen",
+    "web-common"
+]
 
-tokio = { workspace = true }
-tokio-stream = { workspace = true }
-
-rocket = { workspace = true }
-rocket_ws = { workspace = true }
-rocket_cors = { workspace = true }
-
-redis = { workspace = true }
-deadpool-redis = { workspace = true }
-redis-macros = { workspace = true }
-
-rbs = { workspace = true }
-rbatis = { workspace = true }
-rbdc-pg = { workspace = true }
-
-serde = { workspace = true }
-serde_json = { workspace = true }
-
-jsonwebtoken = { workspace = true }
-rocket-jwt = { workspace = true }
-
-utoipa = { workspace = true }
-utoipa-swagger-ui = { workspace = true }
-
-derive-new = { workspace = true }
-
-anyhow = { workspace = true }
-
-tracing = { workspace = true }
-
+resolver = "2"
 
 [workspace.dependencies]
+# 项目内部依赖
+web-codegen = { path = "web-codegen" }
+web-common = { path = "web-common" }
+
 # 异步模型
 tokio = { version = "1.37", features = ["full"] }
 tokio-stream = { version = "0.1.16", features = ["full"] }
@@ -70,9 +39,6 @@ rbdc-pg = { version = "4", default-features = false, features = ["tls-native-tls
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# 懒加载
-once_cell = "1"
-
 # 登录认证
 jsonwebtoken = "9"
 rocket-jwt = "0.5"
@@ -82,10 +48,14 @@ utoipa = { version = "4", features = ["rocket_extras"] }
 utoipa-swagger-ui = { version = "7", features = ["rocket"] }
 
 md5 = "0.7"
-
 derive-new = "0.7"
-
 anyhow = "1"
-
 tracing = "0.1"
 tracing-subscriber = "0.3"
+qrcode = "0.14"
+
+[dependencies]
+web-server = { path = "web-server" }
+
+rocket = { workspace = true }
+anyhow = { workspace = true }

@@ -1,0 +1,37 @@
+[package]
+name = "web-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+web-codegen = { workspace = true }
+web-common = { workspace = true }
+openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
+
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+
+rocket = { workspace = true }
+rocket_ws = { workspace = true }
+rocket_cors = { workspace = true }
+
+redis = { workspace = true }
+deadpool-redis = { workspace = true }
+redis-macros = { workspace = true }
+
+rbs = { workspace = true }
+rbatis = { workspace = true }
+rbdc-pg = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+jsonwebtoken = { workspace = true }
+rocket-jwt = { workspace = true }
+
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+
+derive-new = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

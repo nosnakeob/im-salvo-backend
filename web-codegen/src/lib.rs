@@ -101,10 +101,10 @@ pub fn rocket_base_path(input: TokenStream) -> TokenStream {
     new_fn
 }
 
+// 只支持自动添加当前crate下的路由
 #[proc_macro_attribute]
 pub fn auto_mount(attr: TokenStream, item: TokenStream) -> TokenStream {
     let dir = parse_macro_input!(attr as LitStr).value();
-    // eprintln!("dir: {}", dir);
     let mut func = parse_macro_input!(item as ItemFn);
 
     _auto_mount(dir, &mut func);

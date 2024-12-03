@@ -13,6 +13,7 @@ use web_common::{
         utils,
     },
 };
+use web_common::core::constant::cache::id2key;
 use crate::domain::user::User;
 
 rocket_base_path!("/auth");
@@ -54,6 +55,7 @@ pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
 
     let token = UserClaim::sign(user_claim);
 
+    // token -> user 登录鉴权
     redis_pool.get().await?.set_ex(token2key(&token), user, 3600).await?;
 
     R::success(json!({ "token": token }))
@@ -64,3 +66,21 @@ pub async fn login(login_user: Json<User>, redis_pool: &State<Pool>) -> R {
 pub async fn check(user: User) -> R {
     R::success(json!({ "user": user }))
 }
+
+
+// //  ------ 扫码登录 ------
+// #[utoipa::path(context_path = BASE)]
+// #[get("/qrcode/gen")]
+// pub async fn qr_gen() -> (ContentType, String) {
+//     let code_id = Uuid::new_v4();
+//     let code = QrCode::new(format!("http://localhost:8000/auth/qrcode/login?token={}", code_id))
+//         .unwrap();
+//
+//     let image = code.render()
+//         .min_dimensions(200, 200)
+//         .dark_color(svg::Color("#800000"))
+//         .light_color(svg::Color("#ffff80"))
+//         .build();
+//
+//     (ContentType::SVG, image)
+// }

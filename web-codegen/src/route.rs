@@ -33,18 +33,23 @@ pub fn _rocket_base_path(base_path: LitStr, source_path: PathBuf) -> TokenStream
         }
 
         const BASE: &str = #base_path;
-    ).into()
+    )
+    .into()
 }
 
 pub fn _auto_mount(dir: String, func: &mut ItemFn) {
     if let (Some(Expr(MethodCall(method), _)), Ok(mut entry)) =
-        (func.block.stmts.last_mut(), fs::read_dir(&dir)) {
+        (func.block.stmts.last_mut(), fs::read_dir(&dir))
+    {
         while let Some(Ok(f)) = entry.next() {
-            let route_path = proc_macro2::TokenStream::from_str(path2module_path(&mut f.path()).add("::routes()").as_str()).unwrap();
+            let route_path = proc_macro2::TokenStream::from_str(
+                path2module_path(&f.path()).add("::routes()").as_str(),
+            )
+            .unwrap();
 
             *method = parse_quote! { #method
-                    .attach(#route_path)
-                }
+                .attach(#route_path)
+            }
         }
     }
 }
