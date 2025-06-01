@@ -1,0 +1,31 @@
+use deadpool_redis::{Config, Pool, Runtime};
+use salvo::prelude::*;
+
+use crate::core::config::RedisConfig;
+
+/// 创建Redis中间件
+pub fn stage() -> impl Handler {
+    |req: &mut Request, depot: &mut Depot, _res: &mut Response, _ctrl: &mut FlowCtrl| async move {
+        // 获取Redis配置
+        let redis_config = match RedisConfig::get() {
+            Ok(config) => config,
+            Err(e) => {
+                tracing::error!("Failed to get Redis config: {}", e);
+                return;
+            }
+        };
+        
+        // 创建Redis连接池
+        let cfg = Config::from_url(redis_config.url);
+        let pool = match cfg.create_pool(Some(Runtime::Tokio1)) {
+            Ok(pool) => pool,
+            Err(e) => {
+                tracing::error!("Failed to create Redis pool: {}", e);
+                return;
+            }
+        };
+        
+        // 将Redis连接池存入depot
+        depot.insert(pool);
+    }
+}

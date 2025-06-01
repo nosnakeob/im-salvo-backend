@@ -1,0 +1,91 @@
+use salvo::prelude::*;
+use salvo::http::StatusCode;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+/// 统一响应结构
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Resp<T> {
+    /// 状态码
+    pub code: i32,
+    /// 消息
+    pub msg: String,
+    /// 数据
+    pub data: Option<T>,
+}
+
+impl<T: Serialize> Writer for Resp<T> {
+    fn write(self, res: &mut Response) {
+        res.render(Json(self));
+    }
+}
+
+/// 响应工具类
+pub enum R {
+    /// 成功
+    Success,
+    /// 失败
+    Fail,
+    /// 错误
+    Err,
+}
+
+impl R {
+    /// 成功响应，带数据
+    pub fn success<T: Serialize>(data: T) -> Resp<T> {
+        Resp {
+            code: 200,
+            msg: "success".to_string(),
+            data: Some(data),
+        }
+    }
+
+    /// 成功响应，不带数据
+    pub fn no_val_success() -> Resp<Value> {
+        Resp {
+            code: 200,
+            msg: "success".to_string(),
+            data: None,
+        }
+    }
+
+    /// 失败响应
+    pub fn fail<T: ToString>(msg: T) -> Resp<Value> {
+        Resp {
+            code: 400,
+            msg: msg.to_string(),
+            data: None,
+        }
+    }
+
+    /// 错误响应
+    pub fn err<T: ToString>(msg: T) -> Resp<Value> {
+        Resp {
+            code: 500,
+            msg: msg.to_string(),
+            data: None,
+        }
+    }
+}
+
+/// 错误捕获处理函数
+pub async fn handle_errors(status: StatusCode, res: &mut Response) {
+    match status.as_u16() {
+        401 => {
+            res.status_code(StatusCode::UNAUTHORIZED);
+            res.render(R::fail("Unauthorized"));
+        },
+        404 => {
+            res.status_code(StatusCode::NOT_FOUND);
+            res.render(R::fail("Not Found"));
+        },
+        500 => {
+            res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+            res.render(R::err("Internal Server Error"));
+        },
+        _ => {
+            res.status_code(status);
+            res.render(R::fail(format!("Error: {}", status.as_u16())));
+        }
+    }
+}

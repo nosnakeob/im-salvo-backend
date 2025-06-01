@@ -1,0 +1,30 @@
+use salvo::prelude::*;
+use web_common::core::resp::R;
+
+pub mod auth;
+pub mod chat;
+pub mod captcha;
+pub mod demo;
+
+/// 首页处理函数
+#[handler]
+pub async fn index(res: &mut Response) {
+    res.render(R::success("Hello, world!"));
+}
+
+/// 数据库连接池状态处理函数
+#[handler]
+pub async fn pool(res: &mut Response) {
+    res.render(R::success(rb.get_pool().unwrap().state().await.as_map().unwrap()));
+}
+
+/// 挂载所有路由
+pub fn mount_routes(router: Router) -> Router {
+    router
+        .get("/", index)
+        .get("/pool", pool)
+        .push(auth::routes())
+        .push(chat::routes())
+        .push(captcha::routes())
+        .push(demo::routes())
+}

@@ -1,0 +1,20 @@
+use salvo::prelude::*;
+use web_server::build_salvo;
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // 初始化日志
+    tracing_subscriber::fmt().init();
+    
+    // 构建Salvo路由
+    let router = build_salvo();
+    
+    // 创建监听器并绑定端口
+    let acceptor = TcpListener::new("0.0.0.0:8000").bind().await;
+    
+    // 启动服务器
+    Server::new(acceptor).serve(router).await;
+    
+    Ok(())
+}

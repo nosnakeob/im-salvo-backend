@@ -1,0 +1,38 @@
+#[macro_use]
+extern crate rbatis;
+
+use salvo::prelude::*;
+
+pub mod controller;
+pub mod domain;
+pub mod framework;
+pub mod mapper;
+
+#[cfg(test)]
+pub mod test;
+
+/// 构建Salvo应用程序
+pub fn build_salvo() -> Router {
+    // 创建主路由
+    let router = Router::new();
+    
+    // 添加中间件
+    let router = router
+        .hoop(web_common::rbatis::stage())
+        .hoop(framework::swagger::stage())
+        .hoop(web_common::core::catcher::stage())
+        .hoop(web_common::redis::stage())
+        .hoop(cors_middleware());
+    
+    // 挂载控制器路由
+    controller::mount_routes(router)
+}
+
+/// 创建CORS中间件
+fn cors_middleware() -> impl Handler {
+    cors::Cors::new()
+        .allow_origin("*")
+        .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers("*")
+        .into_handler()
+}
