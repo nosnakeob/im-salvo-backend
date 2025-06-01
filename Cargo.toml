@@ -4,27 +4,29 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [
-    "web-server",
-    "web-codegen",
-    "web-common"
-]
+# members = [
+#     "web-server",
+#     "web-codegen",
+#     "web-common"
+# ]
 
 resolver = "2"
 
 [workspace.dependencies]
 # 项目内部依赖
-web-codegen = { path = "web-codegen" }
-web-common = { path = "web-common" }
+# web-codegen = { path = "web-codegen" }
+# web-common = { path = "web-common" }
 
 # 异步模型
-tokio = { version = "1.37", features = ["full"] }
+tokio = { version = "1.37", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = { version = "0.1.16", features = ["full"] }
 
 # web框架
-rocket = { version = "0.5", features = ["json", "uuid", "secrets"] }
-rocket_ws = "0.1"
-rocket_cors = "0.6"
+# rocket = { version = "0.5", features = ["json", "uuid", "secrets"] }
+# rocket_ws = "0.1"
+# rocket_cors = "0.6"
+
+salvo = { version = "0.79", features = ["anyhow"] }
 
 # 数据库
 redis = { version = "0.27", features = ["tokio-comp"] }
@@ -33,29 +35,33 @@ redis-macros = "0.4"
 
 rbs = "4"
 rbatis = "4"
-rbdc-pg = { version = "4", default-features = false, features = ["tls-native-tls"] }
+rbdc-pg = { version = "4", default-features = false, features = [
+    "tls-native-tls",
+] }
 
 # 序列化
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # 登录认证
-jsonwebtoken = "9"
-rocket-jwt = "0.5"
+# jsonwebtoken = "9"
+# rocket-jwt = "0.5"
 
 # 文档
-utoipa = { version = "5", features = ["rocket_extras"] }
-utoipa-swagger-ui = { version = "8", features = ["rocket"] }
+# utoipa = { version = "5", features = ["rocket_extras"] }
+# utoipa-swagger-ui = { version = "8", features = ["rocket"] }
 
 md5 = "0.7"
 derive-new = "0.7"
 anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-qrcode = "0.14"
+# qrcode = "0.14"
 
 [dependencies]
-web-server = { path = "web-server" }
+# web-server = { path = "web-server" }
 
-rocket = { workspace = true }
+salvo = { workspace = true }
 anyhow = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
