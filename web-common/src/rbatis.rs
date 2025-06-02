@@ -1,13 +1,8 @@
 use rbatis::executor::Executor;
 use rbatis::intercept::{Intercept, ResultType};
 use rbatis::rbdc::db::ExecResult;
-use rbatis::{Error, RBatis};
-use rbdc_pg::PgDriver;
+use rbatis::{async_trait, Error};
 use rbs::Value;
-use rocket::fairing::AdHoc;
-
-use crate::core::utils::config::get_config;
-
 
 #[derive(Debug)]
 struct InsertReturnIdPlugin {}
@@ -39,17 +34,4 @@ impl Intercept for InsertReturnIdPlugin {
 
         Ok(Some(true))
     }
-}
-
-pub fn stage() -> AdHoc {
-    AdHoc::on_ignite("init sql", |rocket| async {
-        let sql_addr = get_config("database.postgres.url").unwrap().into_string().unwrap();
-
-        let rb = RBatis::new();
-        rb.link(PgDriver {}, &sql_addr).await.unwrap();
-
-        // rb.intercepts.insert(0, Arc::new(InsertReturnIdPlugin {}));
-
-        rocket.manage(rb)
-    })
 }

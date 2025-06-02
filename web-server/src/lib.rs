@@ -1,30 +1,51 @@
 #[macro_use]
 extern crate rbatis;
-#[macro_use]
-extern crate rocket;
-#[macro_use]
-extern crate web_codegen;
 
-use rocket::fairing::AdHoc;
-use rocket::{Build, Rocket};
-use rocket_cors::CorsOptions;
-use web_common::core::AppConfig;
+use crate::controller::auth::*;
+use crate::controller::index;
+use crate::middleware::jwt::auth;
+use crate::middleware::rbatis::set_db;
+use crate::middleware::redis::set_redis_pool;
+use salvo::jwt_auth::{ConstDecoder, HeaderFinder};
+use salvo::prelude::*;
+use web_common::jwt::{JwtClaims, SECRET_KEY};
 
 pub mod controller;
 pub mod domain;
-pub mod framework;
 pub mod mapper;
+pub mod middleware;
 
-#[cfg(test)]
-pub mod test;
+// #[cfg(test)]
+// pub mod test;
 
-#[auto_mount]
-pub fn build_rocket() -> Rocket<Build> {
-    rocket::build()
-        .attach(web_common::rbatis::stage())
-        .attach(framework::swagger::stage())
-        .attach(web_common::core::catcher::stage())
-        .attach(web_common::redis::stage())
-        .attach(AdHoc::config::<AppConfig>())
-        .attach(CorsOptions::default().to_cors().unwrap())
+/// 构建Salvo应用程序
+pub async fn build_salvo() -> Router {
+    let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
+        .finders(vec![Box::new(HeaderFinder::new())])
+        .force_passed(true);
+
+    Router::new()
+        .get(index)
+        .hoop(set_db)
+        .hoop(set_redis_pool)
+        .hoop(jwt)
+        .push(
+            Router::with_path("auth")
+                .push(Router::with_path("register").post(register))
+                .push(Router::with_path("login").post(login)),
+        )
+        .push(
+            Router::new()
+                .hoop(auth)
+                .push(Router::with_path("auth").push(Router::with_path("check").get(check))),
+        )
 }
+
+// 创建CORS中间件
+// fn cors_middleware() -> impl Handler {
+//     cors::Cors::new()
+//         .allow_origin("*")
+//         .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE])
+//         .allow_headers("*")
+//         .into_handler()
+// }

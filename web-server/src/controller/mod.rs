@@ -1,22 +1,14 @@
-use web_common::core::resp::R;
+use api_response::ApiResponse;
+use salvo::prelude::*;
 
 pub mod auth;
-pub mod chat;
-pub mod captcha;
-pub mod demo;
+// pub mod chat;
+// pub mod captcha;
+// pub mod demo;
 
-rocket_base_path!("/");
+// rocket_base_path!("/");
 
-#[utoipa::path]
-#[get("/")]
-pub async fn index() -> R {
-    R::success("Hello, world!")
-}
-
-
-#[rbatis_conn]
-#[utoipa::path]
-#[get("/pool")]
-pub async fn pool() -> R {
-    R::success(rb.get_pool().unwrap().state().await.as_map().unwrap())
+#[endpoint]
+pub async fn index() -> ApiResponse<&'static str, ()> {
+    ApiResponse::from_success("Hello, world!")
 }

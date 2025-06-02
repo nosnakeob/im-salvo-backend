@@ -1,13 +1,9 @@
+use anyhow::Result;
+use deadpool_redis::Pool;
+use redis::{AsyncCommands, ExistenceCheck, SetExpiry, SetOptions};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-
-use anyhow::{anyhow, Result};
-use deadpool_redis::Pool;
-use redis::{AsyncCommands, ExistenceCheck, SetExpiry, SetOptions};
-use rocket::{Request, State};
-use rocket::http::Status;
-use rocket::request::{FromRequest, Outcome};
 use tokio::sync::oneshot;
 use tokio::sync::oneshot::error::TryRecvError;
 use tokio::sync::oneshot::Sender;
@@ -33,19 +29,6 @@ unsafe impl Send for RedisMutex {}
 
 unsafe impl Sync for RedisMutex {}
 
-
-#[async_trait]
-impl<'r> FromRequest<'r> for RedisMutex {
-    type Error = anyhow::Error;
-
-    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        match req.guard::<&State<Pool>>().await {
-            Outcome::Success(redis_pool) => Outcome::Success(RedisMutex::new((**redis_pool).clone(), None, None)),
-            _ => Outcome::Error((Status::BadRequest, anyhow!("redis pool not found"))),
-        }
-    }
-}
-
 impl RedisMutex {
     pub fn new(redis_pool: Pool, expire: Option<u64>, wait_time: Option<u64>) -> Self {
         let expire = expire.unwrap_or(30);
@@ -54,7 +37,7 @@ impl RedisMutex {
             redis_pool,
             set_options: SetOptions::default()
                 .conditional_set(ExistenceCheck::NX)
-                .with_expiration(SetExpiry::EX(expire as usize)),
+                .with_expiration(SetExpiry::EX(expire)),
             wait_time: Duration::from_secs(wait_time.unwrap_or(3)),
             expire: Duration::from_secs(expire),
             watchdogs: Arc::new(Mutex::new(HashMap::new())),
@@ -63,7 +46,12 @@ impl RedisMutex {
 
     pub async fn try_lock(&self, key: &str) -> Result<bool> {
         // set key value nx ex expire
-        Ok(self.redis_pool.get().await?.set_options(key, "lock", self.set_options).await?)
+        Ok(self
+            .redis_pool
+            .get()
+            .await?
+            .set_options(key, "lock", self.set_options)
+            .await?)
     }
 
     pub async fn lock(&self, key: &str) -> Result<()> {
@@ -87,7 +75,13 @@ impl RedisMutex {
                         let mut interval = tokio::time::interval(Duration::from_secs(expire / 3));
                         while rx.try_recv() == Err(TryRecvError::Empty) {
                             // renew
-                            let _: () = pool.get().await.unwrap().expire(&key_str, expire as i64).await.unwrap();
+                            let _: () = pool
+                                .get()
+                                .await
+                                .unwrap()
+                                .expire(&key_str, expire as i64)
+                                .await
+                                .unwrap();
 
                             interval.tick().await;
                         }
@@ -96,7 +90,8 @@ impl RedisMutex {
                     return Ok(());
                 }
             }
-        }).await?
+        })
+        .await?
     }
 
     pub async fn unlock(&mut self, key: &str) -> Result<()> {

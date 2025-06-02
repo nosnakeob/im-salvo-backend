@@ -20,10 +20,7 @@ fn t() {
 fn test_encode() {
     let s = encode("123456");
     println!("{}", s);
-    assert_eq!(
-        encode("123456"),
-        encode("123456")
-    );
+    assert_eq!(encode("123456"), encode("123456"));
 }
 
 #[test]
