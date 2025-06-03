@@ -1,9 +1,7 @@
 use crate::domain::user::User;
 use api_response::prelude::*;
-use deadpool_redis::Pool;
 use jsonwebtoken::EncodingKey;
 use rbatis::RBatis;
-use redis::AsyncCommands;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use serde_json::{json, Value};
@@ -17,7 +15,9 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
 
     let mut register_user = json.into_inner();
 
-    let user = User::select_by_name(rb, &register_user.username).await.unwrap();
+    let user = User::select_by_name(rb, &register_user.username)
+        .await
+        .unwrap();
 
     if user.is_some() {
         // bail!("username exists");
@@ -31,7 +31,7 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
 
     User::insert(rb, &register_user).await.unwrap();
 
-    ApiResponse::from_success(())
+    ().api_response_without_meta()
 }
 
 #[endpoint]
@@ -83,27 +83,10 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value, ()
     //     .await
     //     .unwrap();
 
-    ApiResponse::from_success(json!({ "token": token }))
+    json!({ "token": token }).api_response_without_meta()
 }
 
 #[endpoint]
 pub async fn check() -> ApiResponse<(), ()> {
-    ApiResponse::new_success((), ())
+    ().api_response_without_meta()
 }
-
-// //  ------ 扫码登录 ------
-// #[utoipa::path(context_path = BASE)]
-// #[get("/qrcode/gen")]
-// pub async fn qr_gen() -> (ContentType, String) {
-//     let code_id = Uuid::new_v4();
-//     let code = QrCode::new(format!("http://localhost:8000/auth/qrcode/login?token={}", code_id))
-//         .unwrap();
-//
-//     let image = code.render()
-//         .min_dimensions(200, 200)
-//         .dark_color(svg::Color("#800000"))
-//         .light_color(svg::Color("#ffff80"))
-//         .build();
-//
-//     (ContentType::SVG, image)
-// }

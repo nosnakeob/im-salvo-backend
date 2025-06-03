@@ -3,7 +3,7 @@ use salvo::prelude::*;
 
 /// jwt校验
 #[handler]
-pub async fn auth(depot: &mut Depot, res: &mut Response, ctrl: &mut FlowCtrl) {
+pub async fn check_auth(depot: &mut Depot, res: &mut Response, ctrl: &mut FlowCtrl) {
     match depot.jwt_auth_state() {
         JwtAuthState::Authorized => {}
         _ => {

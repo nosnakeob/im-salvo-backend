@@ -1,11 +1,12 @@
 #[macro_use]
 extern crate rbatis;
+#[macro_use]
+extern crate tracing;
 
-use crate::controller::auth::*;
-use crate::controller::index;
-use crate::middleware::jwt::auth;
+use crate::controller::*;
+use crate::middleware::jwt::check_auth;
 use crate::middleware::rbatis::set_db;
-use crate::middleware::redis::set_redis_pool;
+use crate::middleware::redis::set_redis;
 use salvo::jwt_auth::{ConstDecoder, HeaderFinder};
 use salvo::prelude::*;
 use web_common::jwt::{JwtClaims, SECRET_KEY};
@@ -24,11 +25,11 @@ pub async fn build_salvo() -> Router {
         .finders(vec![Box::new(HeaderFinder::new())])
         .force_passed(true);
 
-    Router::new()
-        .get(index)
+    let router = Router::new()
         .hoop(set_db)
-        .hoop(set_redis_pool)
+        .hoop(set_redis)
         .hoop(jwt)
+        .get(index)
         .push(
             Router::with_path("auth")
                 .push(Router::with_path("register").post(register))
@@ -36,9 +37,22 @@ pub async fn build_salvo() -> Router {
         )
         .push(
             Router::new()
-                .hoop(auth)
+                .hoop(check_auth)
                 .push(Router::with_path("auth").push(Router::with_path("check").get(check))),
         )
+        .push(
+            Router::with_path("chat")
+                .get(user_connected)
+                .push(Router::with_path("{id}").post(chat_send)), // 发送消息
+        );
+
+    let doc = OpenApi::new("test api", "0.0.1").merge_router(&router);
+
+    let router = router
+        .unshift(doc.into_router("/api-doc/openapi.json"))
+        .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
+
+    router
 }
 
 // 创建CORS中间件

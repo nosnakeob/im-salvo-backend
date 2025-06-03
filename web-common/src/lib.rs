@@ -4,5 +4,5 @@ pub mod jwt;
 pub mod rbatis;
 // pub mod core;
 // pub mod websocket;
-pub mod redis;
+// pub mod redis;
 pub mod utils;

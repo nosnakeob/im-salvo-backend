@@ -1,6 +1,11 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
+pub struct AppConfig {
+    pub database: DataBaseConfig,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct RedisConfig {
     pub url: String,
 }

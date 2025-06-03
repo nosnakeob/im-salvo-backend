@@ -6,8 +6,8 @@ edition = "2021"
 [workspace]
 members = [
     "web-server",
-#     "web-codegen",
-    "web-common"
+    #     "web-codegen",
+    "web-common",
 ]
 
 resolver = "2"
@@ -18,11 +18,11 @@ resolver = "2"
 web-common = { path = "web-common" }
 
 # 异步模型
-tokio = { version = "1.37", features = ["macros", "rt-multi-thread", "signal"] }
-tokio-stream = { version = "0.1.16", features = ["full"] }
+tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
+tokio-stream = { version = "0.1", features = ["net"] }
 
 # web框架
-salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi"] }
+salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse"] }
 
 # 数据库
 redis = { version = "0.31", features = ["tokio-comp"] }
@@ -36,12 +36,12 @@ rbdc-pg = { version = "4.6", default-features = false, features = [
 ] }
 
 # 序列化
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 md5 = "0.7"
 derive-new = "0.7"
-anyhow = "1"
+anyhow = "1.0"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 # qrcode = "0.14"
@@ -50,7 +50,6 @@ tracing-subscriber = "0.3"
 web-server = { path = "web-server" }
 
 salvo = { workspace = true }
-anyhow = { workspace = true }
-tracing = {workspace = true}
+tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tokio = { workspace = true }

@@ -1,3 +1,4 @@
+use std::time::Duration;
 use salvo::prelude::*;
 use web_server::build_salvo;
 
@@ -19,7 +20,7 @@ async fn main() {
     // 监听Ctrl-C信号优雅停机
     tokio::spawn(async move {
         if tokio::signal::ctrl_c().await.is_ok() {
-            handle.stop_graceful(None);
+            handle.stop_graceful(Duration::from_secs(1));
         }
     });
 

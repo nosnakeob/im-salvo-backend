@@ -32,3 +32,6 @@ jsonwebtoken = "9.3"
 time = "0.3"
 
 api-response = { version = "0.16.0", features = ["lite", "salvo"] }
+
+futures-util = "0.3"
+parking_lot = "0.12"
