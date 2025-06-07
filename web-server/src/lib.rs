@@ -24,6 +24,8 @@ pub mod middleware;
 // #[cfg(test)]
 // pub mod test;
 
+type ApiResponse<T> = api_response::ApiResponse<T, ()>;
+
 /// 构建Salvo应用程序
 pub async fn build_salvo() -> Result<Service> {
     let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))

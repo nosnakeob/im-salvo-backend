@@ -1,4 +1,5 @@
 use crate::domain::user::User;
+use crate::ApiResponse;
 use api_response::prelude::*;
 use jsonwebtoken::EncodingKey;
 use rbatis::RBatis;
@@ -10,7 +11,7 @@ use web_common::jwt::{JwtClaims, SECRET_KEY};
 use web_common::utils;
 
 #[endpoint]
-pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<(), ()> {
+pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()> {
     let rb = depot.obtain_mut::<RBatis>().unwrap();
 
     let mut register_user = json.into_inner();
@@ -35,12 +36,11 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
 }
 
 #[endpoint]
-pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value, ()> {
+pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
     // let pool = depot.obtain::<Pool>().unwrap();
     let rb = depot.obtain::<RBatis>().unwrap();
 
     let login_user = json.into_inner();
-    println!("{:#?}", login_user);
 
     let user = User::select_by_name(rb, &login_user.username)
         .await
@@ -87,6 +87,6 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value, ()
 }
 
 #[endpoint]
-pub async fn check() -> ApiResponse<(), ()> {
+pub async fn check() -> ApiResponse<()> {
     ().api_response_without_meta()
 }

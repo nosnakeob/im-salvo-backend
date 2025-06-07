@@ -1,3 +1,4 @@
+use crate::ApiResponse;
 use anyhow::Result;
 use api_response::prelude::*;
 use deadpool_redis::Pool;
@@ -7,7 +8,7 @@ use salvo::prelude::*;
 use salvo::sse::{SseEvent, SseKeepAlive};
 
 #[endpoint]
-pub async fn chat_send(req: &mut Request, depot: &Depot) -> ApiResponse<(), ()> {
+pub async fn chat_send(req: &mut Request, depot: &Depot) -> ApiResponse<()> {
     let mut conn = depot.obtain::<Pool>().unwrap().get().await.unwrap();
 
     let _: () = conn
@@ -25,7 +26,7 @@ pub async fn chat_send(req: &mut Request, depot: &Depot) -> ApiResponse<(), ()> 
 pub async fn user_connected(res: &mut Response, depot: &Depot) -> Result<()> {
     let mut ps = depot.obtain::<Client>().unwrap().get_async_pubsub().await?;
 
-    let (mut sink, mut stream) = ps.split();
+    let (mut sink, stream) = ps.split();
 
     sink.subscribe("global_room").await?;
 
