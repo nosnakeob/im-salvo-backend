@@ -1,9 +1,10 @@
 use crate::ApiResponse;
 use anyhow::Result;
 use api_response::prelude::*;
+use deadpool_redis::redis::AsyncCommands;
 use deadpool_redis::Pool;
 use futures_util::StreamExt;
-use redis::{AsyncCommands, Client};
+use redis::Client;
 use salvo::prelude::*;
 use salvo::sse::{SseEvent, SseKeepAlive};
 
@@ -24,7 +25,7 @@ pub async fn chat_send(req: &mut Request, depot: &Depot) -> ApiResponse<()> {
 
 #[endpoint]
 pub async fn user_connected(res: &mut Response, depot: &Depot) -> Result<()> {
-    let mut ps = depot.obtain::<Client>().unwrap().get_async_pubsub().await?;
+    let ps = depot.obtain::<Client>().unwrap().get_async_pubsub().await?;
 
     let (mut sink, stream) = ps.split();
 

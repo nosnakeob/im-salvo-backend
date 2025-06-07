@@ -9,7 +9,6 @@ web-common = { workspace = true }
 # openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
 tokio = { workspace = true }
-tokio-stream = { workspace = true }
 
 salvo = { workspace = true }
 
@@ -34,4 +33,3 @@ time = "0.3"
 api-response = { version = "0.16.0", features = ["lite", "salvo"] }
 
 futures-util = "0.3"
-parking_lot = "0.12"
