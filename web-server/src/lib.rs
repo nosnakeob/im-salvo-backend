@@ -7,6 +7,8 @@ use crate::controller::*;
 use crate::middleware::jwt::check_auth;
 use crate::middleware::rbatis::set_db;
 use crate::middleware::redis::set_redis;
+use salvo::cors::Cors;
+use salvo::http::Method;
 use salvo::jwt_auth::{ConstDecoder, HeaderFinder};
 use salvo::prelude::*;
 use web_common::jwt::{JwtClaims, SECRET_KEY};
@@ -20,15 +22,18 @@ pub mod middleware;
 // pub mod test;
 
 /// 构建Salvo应用程序
-pub async fn build_salvo() -> Router {
+pub async fn build_salvo() -> Service {
     let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
         .finders(vec![Box::new(HeaderFinder::new())])
         .force_passed(true);
 
+    let cors = Cors::new()
+        .allow_origin("*")
+        .allow_methods([Method::GET, Method::POST, Method::DELETE])
+        .allow_headers("authorization")
+        .into_handler();
+
     let router = Router::new()
-        .hoop(set_db)
-        .hoop(set_redis)
-        .hoop(jwt)
         .get(index)
         .push(
             Router::with_path("auth")
@@ -52,14 +57,9 @@ pub async fn build_salvo() -> Router {
         .unshift(doc.into_router("/api-doc/openapi.json"))
         .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
 
-    router
+    Service::new(router)
+        .hoop(set_db)
+        .hoop(set_redis)
+        .hoop(jwt)
+        .hoop(cors)
 }
-
-// 创建CORS中间件
-// fn cors_middleware() -> impl Handler {
-//     cors::Cors::new()
-//         .allow_origin("*")
-//         .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE])
-//         .allow_headers("*")
-//         .into_handler()
-// }
