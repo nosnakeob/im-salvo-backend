@@ -26,26 +26,8 @@ pub mod middleware;
 
 type ApiResponse<T> = api_response::ApiResponse<T, ()>;
 
-/// 构建Salvo应用程序
-pub async fn build_salvo() -> Result<Service> {
-    let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
-        .finders(vec![Box::new(HeaderFinder::new())])
-        .force_passed(true);
-
-    let cors = Cors::new()
-        .allow_origin("*")
-        .allow_methods([Method::GET, Method::POST, Method::DELETE])
-        .allow_headers("authorization")
-        .into_handler();
-
-    let redis_pool = Config::from_url("redis://localhost/").create_pool(None)?;
-    // 用于发布订阅
-    let redis_client = Client::open("redis://localhost/")?;
-
-    let rb = RBatis::new();
-    rb.link(PgDriver {}, "postgres://postgres:135246@localhost/postgres")
-        .await?;
-
+/// 构建路由
+fn build_router() -> Router {
     let router = Router::new()
         .get(index)
         .push(
@@ -66,11 +48,32 @@ pub async fn build_salvo() -> Result<Service> {
 
     let doc = OpenApi::new("test api", "0.0.1").merge_router(&router);
 
-    let router = router
+    router
         .unshift(doc.into_router("/api-doc/openapi.json"))
-        .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
+        .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"))
+}
 
-    Ok(Service::new(router)
+/// 构建Salvo应用程序
+pub async fn build_salvo() -> Result<Service> {
+    let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
+        .finders(vec![Box::new(HeaderFinder::new())])
+        .force_passed(true);
+
+    let cors = Cors::new()
+        .allow_origin("*")
+        .allow_methods([Method::GET, Method::POST, Method::DELETE])
+        .allow_headers("Authorization")
+        .into_handler();
+
+    let redis_pool = Config::from_url("redis://localhost/").create_pool(None)?;
+    // 用于发布订阅
+    let redis_client = Client::open("redis://localhost/")?;
+
+    let rb = RBatis::new();
+    rb.link(PgDriver {}, "postgres://postgres:135246@localhost/postgres")
+        .await?;
+
+    Ok(Service::new(build_router())
         .hoop(
             affix_state::inject(rb)
                 .inject(redis_pool)
