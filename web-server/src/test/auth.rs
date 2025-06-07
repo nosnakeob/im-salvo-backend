@@ -1,48 +1,58 @@
-use rocket::http::{Header, Status};
 use crate::domain::user::User;
-use web_common::core::resp::Resp;
-use crate::test::get_client;
+use crate::{build_salvo, ApiResponse};
+use anyhow::Result;
+use salvo::test::{ResponseExt, TestClient};
+use serde_json::Value;
 
-#[test]
-fn register() {
-    let client = get_client();
-    let resp = client.post("/auth/register")
-        .json(&User::default())
-        .dispatch();
+#[tokio::test]
+async fn register() {
+    let service = build_salvo().await.unwrap();
+    let url = "http://localhost:8000/";
 
-    let status = resp.status();
+    // 用户名已存在
+    let user = User::default();
 
-    if status != Status::Ok {
-        println!("{:#?}", resp.into_json::<Resp>().unwrap());
-    }
+    let res: ApiResponse<()> = TestClient::post(format!("{}auth/register", url))
+        .json(&user)
+        .send(&service)
+        .await
+        .take_json()
+        .await
+        .unwrap();
 
-    // 首次注册
-    // assert_eq!(resp.status(), Status::Ok);
-    assert_eq!(status, Status::BadRequest);
+    assert!(res.is_error());
 }
 
-
-#[test]
-fn login() {
+#[tokio::test]
+async fn login() -> Result<()> {
     // 已有对应用户
-    let client = get_client();
-    let mut resp = client.post("/auth/login")
+    let service = build_salvo().await?;
+    let url = "http://localhost:8000/";
+
+    let res: ApiResponse<Value> = TestClient::post(format!("{}auth/login", url))
         .json(&User::default())
-        .dispatch();
+        .send(&service)
+        .await
+        .take_json()
+        .await?;
 
-    // assert_eq!(resp.status(), Status::Ok);
-    let mut rj: Resp = resp.into_json().unwrap();
-    println!("{:#?}", rj);
+    let token = res
+        .unwrap()
+        .data
+        .get("token")
+        .unwrap()
+        .as_str()
+        .unwrap()
+        .to_string();
 
-    let token = rj.data.unwrap().as_object().unwrap()
-        .get("token").unwrap().as_str().unwrap().to_string();
+    let res: ApiResponse<()> = TestClient::get(format!("{}auth/check", url))
+        .add_header("Authorization", format!("Bearer {}", token), true)
+        .send(&service)
+        .await
+        .take_json()
+        .await?;
 
-    resp = client.get("/auth/check")
-        .header(Header::new("Authorization", format!("Bearer {}", token)))
-        .dispatch();
+    assert!(res.is_success());
 
-    assert_eq!(resp.status(), Status::Ok);
-
-    rj = resp.into_json().unwrap();
-    println!("{:#?}", rj);
+    Ok(())
 }

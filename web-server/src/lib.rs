@@ -21,8 +21,8 @@ pub mod domain;
 pub mod mapper;
 pub mod middleware;
 
-// #[cfg(test)]
-// pub mod test;
+#[cfg(test)]
+pub mod test;
 
 type ApiResponse<T> = api_response::ApiResponse<T, ()>;
 

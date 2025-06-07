@@ -12,9 +12,9 @@ pub struct User {
 impl Default for User {
     fn default() -> Self {
         Self {
-            id: Some(1),
-            username: "snake".to_string(),
-            password: "123123".to_string(),
+            id: None,
+            username: "admin".to_string(),
+            password: "admin123".to_string(),
         }
     }
 }

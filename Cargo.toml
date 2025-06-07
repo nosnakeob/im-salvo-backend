@@ -21,7 +21,7 @@ web-common = { path = "web-common" }
 tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
 
 # web框架
-salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse", "cors", "affix-state"] }
+salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse", "cors", "affix-state", "test"] }
 
 # 数据库
 redis = { version = "0.32", features = ["tokio-comp"] }
