@@ -5,8 +5,11 @@ extern crate tracing;
 
 use crate::controller::*;
 use crate::middleware::jwt::check_auth;
-use crate::middleware::rbatis::set_db;
-use crate::middleware::redis::set_redis;
+use anyhow::Result;
+use deadpool_redis::Config;
+use rbatis::RBatis;
+use rbdc_pg::PgDriver;
+use redis::Client;
 use salvo::cors::Cors;
 use salvo::http::Method;
 use salvo::jwt_auth::{ConstDecoder, HeaderFinder};
@@ -22,7 +25,7 @@ pub mod middleware;
 // pub mod test;
 
 /// 构建Salvo应用程序
-pub async fn build_salvo() -> Service {
+pub async fn build_salvo() -> Result<Service> {
     let jwt: JwtAuth<JwtClaims, _> = JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
         .finders(vec![Box::new(HeaderFinder::new())])
         .force_passed(true);
@@ -32,6 +35,14 @@ pub async fn build_salvo() -> Service {
         .allow_methods([Method::GET, Method::POST, Method::DELETE])
         .allow_headers("authorization")
         .into_handler();
+
+    let redis_pool = Config::from_url("redis://localhost/").create_pool(None)?;
+    // 用于发布订阅
+    let redis_client = Client::open("redis://localhost/")?;
+
+    let rb = RBatis::new();
+    rb.link(PgDriver {}, "postgres://postgres:135246@localhost/postgres")
+        .await?;
 
     let router = Router::new()
         .get(index)
@@ -57,9 +68,12 @@ pub async fn build_salvo() -> Service {
         .unshift(doc.into_router("/api-doc/openapi.json"))
         .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
 
-    Service::new(router)
-        .hoop(set_db)
-        .hoop(set_redis)
+    Ok(Service::new(router)
+        .hoop(
+            affix_state::inject(rb)
+                .inject(redis_pool)
+                .inject(redis_client),
+        )
         .hoop(jwt)
-        .hoop(cors)
+        .hoop(cors))
 }

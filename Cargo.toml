@@ -22,7 +22,7 @@ tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 
 # web框架
-salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse"] }
+salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse", "cors", "affix-state"] }
 
 # 数据库
 redis = { version = "0.31", features = ["tokio-comp"] }
@@ -49,6 +49,7 @@ tracing-subscriber = "0.3"
 [dependencies]
 web-server = { path = "web-server" }
 
+anyhow = { workspace = true }
 salvo = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
