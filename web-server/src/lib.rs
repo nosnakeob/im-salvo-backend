@@ -2,6 +2,8 @@
 extern crate rbatis;
 #[macro_use]
 extern crate tracing;
+#[macro_use]
+extern crate web_common;
 
 use crate::controller::*;
 use crate::middleware::jwt::check_auth;

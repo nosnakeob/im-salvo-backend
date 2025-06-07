@@ -7,6 +7,7 @@ use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use serde_json::{json, Value};
 use time::Duration;
+use web_codegen::bail;
 use web_common::jwt::{JwtClaims, SECRET_KEY};
 use web_common::utils;
 
@@ -21,11 +22,7 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
         .unwrap();
 
     if user.is_some() {
-        // bail!("username exists");
-        return ApiResponse::from_error_msg(
-            StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-            "username exists",
-        );
+        bail!("username exists");
     }
 
     register_user.password = utils::password::encode(&register_user.password);
@@ -49,19 +46,12 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
     let user = match user {
         Some(user) => user,
         None => {
-            // todo bail!
-            return ApiResponse::from_error_msg(
-                StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-                "user not exists",
-            );
+            bail!("user not exists");
         }
     };
 
     if !utils::password::verify(&user.password, &login_user.password) {
-        return ApiResponse::from_error_msg(
-            StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-            "password error",
-        );
+        bail!("password error");
     }
 
     let claim = JwtClaims::new(&user.username, Duration::hours(6));

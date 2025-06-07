@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# web-codegen = { workspace = true }
+web-codegen = { workspace = true }
 web-common = { workspace = true }
 # openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
