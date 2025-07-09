@@ -1,4 +1,4 @@
-use crate::{build_salvo, ApiResponse};
+use crate::{ApiResponse, build_salvo};
 use anyhow::Result;
 use salvo::test::{ResponseExt, TestClient};
 

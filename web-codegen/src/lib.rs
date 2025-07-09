@@ -1,4 +1,3 @@
-#![feature(proc_macro_span)]
 #[macro_use]
 extern crate quote;
 #[macro_use]

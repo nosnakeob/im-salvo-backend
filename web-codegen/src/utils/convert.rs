@@ -13,12 +13,10 @@ pub fn path2module_path(path: &PathBuf) -> String {
     let mut iter = path.components();
 
     // 忽略crate src
-    if let Some(Normal(first)) = iter.next() {
-        // crate
-        if first.to_string_lossy().contains("-") {
-            // src
-            iter.next();
-        }
+    if let Some(Normal(first)) = iter.next()
+        && first.to_string_lossy().contains("-")
+    {
+        iter.next();
     }
 
     let mut modules = vec![];

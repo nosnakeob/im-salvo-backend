@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     let service = build_salvo().await?;
 
     // 创建监听器并绑定端口
-    let acceptor = TcpListener::new("0.0.0.0:8000").bind().await;
+    let acceptor = TcpListener::new("localhost:8000").bind().await;
 
     let server = Server::new(acceptor);
 

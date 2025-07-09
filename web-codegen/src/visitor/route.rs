@@ -1,6 +1,6 @@
 use proc_macro2::Ident;
-use syn::{ItemFn, Meta};
 use syn::visit::Visit;
+use syn::{ItemFn, Meta};
 
 pub struct RocketRouteFnVisitor {
     pub route_fns: Vec<Ident>,
@@ -12,17 +12,14 @@ impl RocketRouteFnVisitor {
     }
 }
 
-
 impl Visit<'_> for RocketRouteFnVisitor {
     fn visit_item_fn(&mut self, item_fn: &ItemFn) {
         for x in &item_fn.attrs {
-            if let Meta::List(list) = &x.meta {
-                // 记录路由函数
-                if let Some(ident) = list.path.get_ident() {
-                    if ["post", "get", "put", "delete"].contains(&ident.to_string().as_str()) {
-                        self.route_fns.push(item_fn.sig.ident.clone());
-                    }
-                }
+            if let Meta::List(list) = &x.meta
+                && let Some(ident) = list.path.get_ident()
+                && ["post", "get", "put", "delete"].contains(&ident.to_string().as_str())
+            {
+                self.route_fns.push(item_fn.sig.ident.clone());
             }
         }
     }
