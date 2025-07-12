@@ -2,7 +2,6 @@ use syn::Expr::Path;
 use syn::visit_mut::VisitMut;
 use syn::{ExprCall, ExprPath};
 
-// 更好搜索语法树中的语法节点
 pub struct RbatisConn;
 
 impl VisitMut for RbatisConn {
