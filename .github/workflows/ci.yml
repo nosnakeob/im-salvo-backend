@@ -1,4 +1,4 @@
-name: Salvo CI with Database
+name: Salvo CI with Docker
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test with Database
+    name: Test with Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -16,12 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 步骤 2: 启动数据库服务
-      # 我们只启动 'db' 服务，因为测试时不需要运行 'app' 服务的容器
-      # -d 表示在后台运行
-      # --wait 会等待健康检查（healthcheck）成功后再继续下一步
-      - name: Start database service
-        run: docker-compose up -d --wait db
+      # 步骤 2: 启动依赖服务 (数据库和缓存)
+      # --wait 标志会使用 docker-compose.yml 中的 healthcheck
+      # 它会等待所有服务都健康后，再继续下一步
+      - name: Start services
+        run: docker-compose up -d --wait
 
       # 步骤 3: 设置 Rust 环境并缓存依赖
       - name: Install Rust toolchain
@@ -41,7 +40,7 @@ jobs:
       # 步骤 4: 运行测试
       # 关键：在这里设置 DATABASE_URL 环境变量，让测试代码能连接到数据库
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test -p web-server --verbose
 #        env:
 #          # 这个 URL 必须与 docker-compose.yml 中的配置相匹配
 #          # 主机是 localhost，因为我们已经将端口映射到了 Runner

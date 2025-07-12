@@ -4,12 +4,23 @@ services:
     environment:
       POSTGRES_PASSWORD: 135246
     volumes:
-      - /var/lib/docker/volumes/le_rocket/sql:/var/lib/postgresql/data
-      - ./script/init_user_table.sql:/docker-entrypoint-initdb.d/init_user_table.sql
+      - ./script/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     ports:
       - "5432:5432"
+    healthcheck:
+      # 健康检查：等待 PostgreSQL 准备好接受连接
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   cache:
     image: redis:latest
     ports:
       - "6379:6379"
+    healthcheck:
+      # 健康检查：等待 Redis 准备好
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
