@@ -12,21 +12,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 步骤 1: 检出代码
-      - name: Checkout repository
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤 2: 启动依赖服务 (数据库和缓存)
       # --wait 标志会使用 docker-compose.yml 中的 healthcheck
       # 它会等待所有服务都健康后，再继续下一步
-      - name: Start services
-        run: docker-compose up -d --wait
+      - name: 启动依赖服务
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          up-flags: '-d --wait'
 
-      # 步骤 3: 设置 Rust 环境并缓存依赖
-      - name: Install Rust toolchain
+      - name: 设置 Rust 环境
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo dependencies
+      - name: 缓存依赖
         uses: actions/cache@v4
         with:
           path: |
@@ -37,9 +36,8 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
 
-      # 步骤 4: 运行测试
       # 关键：在这里设置 DATABASE_URL 环境变量，让测试代码能连接到数据库
-      - name: Run tests
+      - name: 运行测试
         run: cargo test -p web-server --verbose
 #        env:
 #          # 这个 URL 必须与 docker-compose.yml 中的配置相匹配
@@ -48,8 +46,7 @@ jobs:
 #          # 如果你的应用需要，可以设置其他环境变量
 #          RUST_LOG: "info"
 
-      # 步骤 5: 清理服务（可选但推荐）
       # 无论测试成功与否，这个步骤都会运行，以确保关闭 Docker 容器
-      - name: Stop services
+      - name: 清理服务（可选但推荐）
         if: always()
         run: docker-compose down
