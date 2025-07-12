@@ -82,5 +82,6 @@ pub async fn build_salvo() -> Result<Service> {
                 .inject(redis_client),
         )
         .hoop(jwt)
-        .hoop(cors))
+        .hoop(cors)
+        .hoop(Compression::default()))
 }
