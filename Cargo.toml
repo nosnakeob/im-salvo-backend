@@ -1,14 +1,10 @@
 [package]
-name = "learn-rocket"
+name = "im-salvo-backend"
 version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = [
-    "web-server",
-    "web-codegen",
-    "web-common",
-]
+members = ["web-server", "web-codegen", "web-common"]
 
 resolver = "2"
 
@@ -21,7 +17,18 @@ web-common = { path = "web-common" }
 tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
 
 # web框架
-salvo = { version = "0.79", features = ["anyhow", "jwt-auth", "oapi", "sse", "cors", "affix-state", "test"] }
+salvo = { version = "0.79", features = [
+    "anyhow",
+    "jwt-auth",
+    "oapi",
+    "sse",
+    "cors",
+    "affix-state",
+    "test",
+    "compression",
+    "serve-static",
+    # "quinn"
+] }
 
 # 数据库
 redis = { version = "0.32", features = ["tokio-comp"] }

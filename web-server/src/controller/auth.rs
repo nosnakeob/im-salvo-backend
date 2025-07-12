@@ -1,15 +1,15 @@
-use crate::domain::user::User;
 use crate::ApiResponse;
+use crate::domain::db::User;
 use api_response::prelude::*;
+use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::EncodingKey;
 use rbatis::RBatis;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use time::Duration;
 use web_codegen::bail;
 use web_common::jwt::{JwtClaims, SECRET_KEY};
-use web_common::utils;
 
 #[endpoint]
 pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()> {
@@ -17,15 +17,15 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
 
     let mut register_user = json.into_inner();
 
-    let user = User::select_by_name(rb, &register_user.username)
+    if User::select_by_name(rb, &register_user.username)
         .await
-        .unwrap();
-
-    if user.is_some() {
+        .unwrap()
+        .is_some()
+    {
         bail!("username exists");
     }
 
-    register_user.password = utils::password::encode(&register_user.password);
+    register_user.password = hash(register_user.password, DEFAULT_COST).unwrap();
 
     User::insert(rb, &register_user).await.unwrap();
 
@@ -39,18 +39,17 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
 
     let login_user = json.into_inner();
 
-    let user = User::select_by_name(rb, &login_user.username)
-        .await
-        .unwrap();
-
-    let user = match user {
-        Some(user) => user,
-        None => {
+    let user = match User::select_by_name(rb, &login_user.username).await {
+        Ok(Some(user)) => user,
+        Ok(None) => {
             bail!("user not exists");
+        }
+        Err(e) => {
+            bail!(e.to_string());
         }
     };
 
-    if !utils::password::verify(&user.password, &login_user.password) {
+    if !verify(login_user.password, &user.password).unwrap() {
         bail!("password error");
     }
 
