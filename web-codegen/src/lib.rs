@@ -5,7 +5,7 @@ extern crate syn;
 
 use crate::connection::_rb_conn;
 use proc_macro::{TokenStream};
-use syn::{parse_quote, Expr, Fields, ItemFn, ItemStruct, LitStr};
+use syn::{parse_quote, Expr, Fields, ItemFn, ItemStruct};
 
 mod connection;
 mod utils;

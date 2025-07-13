@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::path::Component::Normal;
 use std::path::PathBuf;
 

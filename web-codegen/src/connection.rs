@@ -1,7 +1,6 @@
+use crate::visitor::sql::RbatisConn;
+use syn::ItemFn;
 use syn::visit_mut::VisitMut;
-use syn::{ItemFn, Stmt};
-
-use crate::visitor::sql::{RbatisConn, Transaction};
 
 pub fn _rb_conn(func: &mut ItemFn) {
     func.sig

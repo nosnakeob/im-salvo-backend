@@ -6,5 +6,4 @@ edition = "2024"
 [dependencies]
 # 序列化
 serde = { workspace = true }
-md5 = { workspace = true }
 time = "0.3"
