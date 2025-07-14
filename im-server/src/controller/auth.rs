@@ -8,8 +8,8 @@ use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use serde_json::{Value, json};
 use time::Duration;
-use web_codegen::bail;
-use web_common::jwt::{JwtClaims, SECRET_KEY};
+use im_codegen::bail;
+use im_common::jwt::{JwtClaims, SECRET_KEY};
 
 #[endpoint]
 pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()> {

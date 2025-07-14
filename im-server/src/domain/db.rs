@@ -3,7 +3,7 @@ use redis_macros::{FromRedisValue, ToRedisArgs};
 use salvo::oapi::ToSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use web_codegen::base_entity;
+use im_codegen::base_entity;
 
 #[derive(
     Debug, Serialize, Deserialize, Clone, ToSchema, ToRedisArgs, FromRedisValue, PartialEq,

@@ -2,7 +2,7 @@ use anyhow::Result;
 use deadpool_redis::Config;
 use redis::Script;
 
-use web_common::core::utils::config::get_config;
+use im_common::core::utils::config::get_config;
 
 #[tokio::test]
 async fn script() -> Result<()> {

@@ -1,6 +1,6 @@
 use deadpool_redis::Pool;
 use serde_json::json;
-use web_common::core::resp::R;
+use common::core::resp::R;
 use redis::AsyncCommands;
 use rocket::State;
 

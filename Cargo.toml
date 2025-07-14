@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = ["web-server", "web-codegen", "web-common"]
+members = ["im-codegen", "im-common"]
 
 resolver = "2"
 
 [workspace.dependencies]
 # 项目内部依赖
-web-codegen = { path = "web-codegen" }
-web-common = { path = "web-common" }
+im-codegen = { path = "im-codegen" }
+im-common = { path = "im-common" }
 
 # 异步模型
 tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
@@ -52,10 +52,40 @@ tracing-subscriber = "0.3"
 # qrcode = "0.14"
 
 [dependencies]
-web-server = { path = "web-server" }
+im-codegen = { workspace = true }
+im-common = { workspace = true }
+# openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
-anyhow = { workspace = true }
-salvo = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 tokio = { workspace = true }
+
+salvo = { workspace = true }
+
+redis = { workspace = true }
+deadpool-redis = { workspace = true }
+redis-macros = { workspace = true }
+
+rbs = { workspace = true }
+rbatis = { workspace = true }
+rbdc-pg = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+derive-new = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = {workspace = true}
+
+jsonwebtoken = "9.3"
+time = "0.3"
+
+api-response = { version = "0.16.0", features = ["lite", "salvo"] }
+
+futures-util = "0.3"
+
+bcrypt = "0.17"
+rand = "0.9"
+
+[[bin]]
+name = "ims"
+path = "im-server/src/main.rs"

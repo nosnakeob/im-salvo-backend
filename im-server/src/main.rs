@@ -7,6 +7,7 @@ use crate::controller::*;
 use crate::middleware::jwt::check_auth;
 use anyhow::Result;
 use deadpool_redis::Config;
+use im_common::jwt::{JwtClaims, SECRET_KEY};
 use rbatis::RBatis;
 use rbdc_pg::PgDriver;
 use redis::Client;
@@ -14,7 +15,7 @@ use salvo::cors::Cors;
 use salvo::http::Method;
 use salvo::jwt_auth::{ConstDecoder, HeaderFinder};
 use salvo::prelude::*;
-use web_common::jwt::{JwtClaims, SECRET_KEY};
+use std::time::Duration;
 
 pub mod controller;
 pub mod domain;
@@ -82,4 +83,33 @@ pub async fn build_salvo() -> Result<Service> {
         .hoop(jwt)
         .hoop(cors)
         .hoop(Compression::default()))
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // 初始化日志
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
+    // 构建Salvo服务
+    let service = build_salvo().await?;
+
+    // 创建监听器并绑定端口
+    let acceptor = TcpListener::new("localhost:8000").bind().await;
+
+    let server = Server::new(acceptor);
+
+    // 监听Ctrl-C信号优雅停机
+    let handle = server.handle();
+    tokio::spawn(async move {
+        if tokio::signal::ctrl_c().await.is_ok() {
+            handle.stop_graceful(Duration::from_secs(1));
+        }
+    });
+
+    // 启动服务器
+    server.serve(service).await;
+
+    Ok(())
 }
