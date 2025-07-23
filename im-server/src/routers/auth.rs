@@ -1,5 +1,5 @@
 use crate::ApiResponse;
-use crate::domain::db::User;
+use crate::models::user::User;
 use api_response::prelude::*;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::EncodingKey;

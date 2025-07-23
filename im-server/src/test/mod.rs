@@ -1,5 +1,6 @@
 use crate::{ApiResponse, build_salvo};
 use anyhow::Result;
+use im_common::config::CONFIG;
 use salvo::test::{ResponseExt, TestClient};
 
 mod auth;
@@ -9,7 +10,7 @@ mod auth;
 async fn index() -> Result<()> {
     let service = build_salvo().await?;
 
-    let res: ApiResponse<String> = TestClient::get("http://localhost:8000/")
+    let res: ApiResponse<String> = TestClient::get(format!("http://{}", CONFIG.listen_addr))
         .send(&service)
         .await
         .take_json()

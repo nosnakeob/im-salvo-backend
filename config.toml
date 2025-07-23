@@ -1,0 +1,15 @@
+listen_addr = "127.0.0.1:8008"
+
+[db]
+url = "postgres://postgres:135246@127.0.0.1:5432/postgres"
+
+[redis]
+
+
+[jwt]
+secret = "yoursecret"
+expiry = 3600
+
+[log]
+file_name = "app.log"
+rolling = "daily"

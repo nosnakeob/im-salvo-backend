@@ -7,3 +7,6 @@ edition = "2024"
 # 序列化
 serde = { workspace = true }
 time = "0.3"
+figment = { version = "0.10", features = ["env", "toml"] }
+tracing-subscriber = { workspace = true }
+tracing-appender = "0.2"
