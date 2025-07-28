@@ -1,5 +1,5 @@
-use figment::providers::{Env, Format, Toml};
 use figment::Figment;
+use figment::providers::{Env, Format, Toml};
 use serde::Deserialize;
 use std::sync::LazyLock;
 
@@ -7,6 +7,8 @@ mod log_config;
 pub use log_config::LogConfig;
 mod db_config;
 pub use db_config::DbConfig;
+mod redis_config;
+pub use redis_config::RedisConfig;
 
 pub static CONFIG: LazyLock<ServerConfig> = LazyLock::new(init);
 
@@ -42,6 +44,7 @@ pub struct ServerConfig {
 
     pub db: DbConfig,
     pub log: LogConfig,
+    pub redis: RedisConfig,
     pub jwt: JwtConfig,
     pub tls: Option<TlsConfig>,
 }
