@@ -4,7 +4,7 @@ use im_common::config::CONFIG;
 use salvo::test::{ResponseExt, TestClient};
 
 mod auth;
-// mod chat;
+mod chat;
 
 #[tokio::test]
 async fn index() -> Result<()> {
