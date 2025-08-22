@@ -1,6 +1,5 @@
-use crate::ApiResponse;
 use crate::hoops::auth_hoop;
-use api_response::prelude::*;
+use crate::models::resp::*;
 use salvo::prelude::*;
 
 mod auth;
@@ -9,7 +8,7 @@ mod user;
 
 #[endpoint]
 pub async fn index() -> ApiResponse<&'static str> {
-    "Hello, world!".api_response_without_meta()
+    "Hello, world!".api_response()
 }
 
 /// 构建路由
@@ -24,14 +23,12 @@ pub fn root() -> Router {
         .push(
             Router::new()
                 .hoop(auth_hoop())
+                .push(Router::with_path("user").push(Router::with_path("status").get(user::status)))
                 .push(
-                    Router::with_path("user").push(Router::with_path("status").get(user::status)),
+                    Router::with_path("chat")
+                        .get(chat::connect)
+                        .post(chat::send), // 发送消息
                 ),
-        )
-        .push(
-            Router::with_path("chat")
-                .get(chat::user_connected)
-                .push(Router::with_path("{id}").post(chat::chat_send)), // 发送消息
         );
 
     let doc = OpenApi::new("test api", "0.0.1").merge_router(&router);

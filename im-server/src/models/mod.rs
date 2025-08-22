@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod conversation;
 pub mod msg;
+pub mod resp;
 pub mod user;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]

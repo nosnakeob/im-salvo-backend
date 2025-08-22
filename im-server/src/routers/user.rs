@@ -1,6 +1,5 @@
-use crate::ApiResponse;
+use crate::models::resp::*;
 use crate::models::user::User;
-use api_response::ApiSuccessResponse;
 use im_common::jwt::JwtClaims;
 use rbatis::RBatis;
 use salvo::prelude::*;
@@ -14,5 +13,5 @@ pub async fn status(depot: &mut Depot) -> ApiResponse<User> {
         .await
         .unwrap()
         .unwrap()
-        .api_response_without_meta()
+        .api_response()
 }

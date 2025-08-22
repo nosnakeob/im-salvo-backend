@@ -1,7 +1,6 @@
-use crate::ApiResponse;
+use crate::models::resp::*;
 use crate::models::msg::Message;
 use anyhow::Result;
-use api_response::prelude::*;
 use deadpool_redis::Pool;
 use deadpool_redis::redis::AsyncCommands;
 use futures_util::StreamExt;
@@ -22,7 +21,7 @@ pub async fn send(json: JsonBody<Message>, depot: &Depot) -> ApiResponse<()> {
 
     let _: () = conn.publish("global_room", msg).await.unwrap();
 
-    ().api_response_without_meta()
+    ().api_response()
 }
 
 #[endpoint]

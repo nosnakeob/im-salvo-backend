@@ -1,6 +1,6 @@
 use crate::{
-    ApiResponse, build_salvo,
-    models::{msg::Message, user::User},
+    build_salvo,
+    models::{msg::Message, resp::*, user::User},
 };
 use anyhow::Result;
 use im_common::config::CONFIG;
@@ -19,7 +19,7 @@ async fn test_send_chat_message() -> Result<()> {
             .take_json()
             .await?;
 
-    let response_data = res.into_result_data()?;
+    let response_data = res.into_result()?;
     let token = response_data.get("token").unwrap().as_str().unwrap();
 
     let msg = Message::default();

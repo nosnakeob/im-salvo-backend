@@ -15,7 +15,7 @@ mod visitor;
 pub fn bail(input: TokenStream) -> TokenStream {
     let expr = parse_macro_input!(input as Expr);
     let new_fn = quote! {
-        return ApiResponse::from_error_msg(
+        return ApiResponse::error(
             salvo::prelude::StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             #expr
         );

@@ -1,4 +1,5 @@
-use crate::{ApiResponse, build_salvo};
+use crate::build_salvo;
+use crate::models::resp::ApiResponse;
 use anyhow::Result;
 use im_common::config::CONFIG;
 use salvo::test::{ResponseExt, TestClient};
@@ -16,7 +17,7 @@ async fn index() -> Result<()> {
         .take_json()
         .await?;
 
-    assert_eq!(res.unwrap().data, "Hello, world!");
+    assert_eq!(res.unwrap(), "Hello, world!");
 
     Ok(())
 }

@@ -1,7 +1,8 @@
 // 用户认证相关的测试模块
 
+use crate::build_salvo;
+use crate::models::resp::ApiResponse;
 use crate::models::user::User;
-use crate::{ApiResponse, build_salvo};
 use anyhow::Result;
 use im_common::config::CONFIG;
 use rand::Rng;
@@ -114,7 +115,7 @@ async fn test_login_success() -> Result<()> {
     assert!(res.is_success());
 
     // 从响应中提取 JWT token
-    let response_data = res.into_result_data()?;
+    let response_data = res.into_result()?;
     let token = response_data.get("token").unwrap().as_str().unwrap();
 
     let res: ApiResponse<User> =
@@ -125,7 +126,7 @@ async fn test_login_success() -> Result<()> {
             .take_json()
             .await?;
 
-    let user = res.unwrap().data;
+    let user = res.unwrap();
 
     assert_eq!(User::default().username, user.username);
 

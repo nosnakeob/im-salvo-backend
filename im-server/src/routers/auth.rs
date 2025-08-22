@@ -1,8 +1,7 @@
 // 用户认证相关的路由处理器
 
-use crate::ApiResponse;
+use crate::models::resp::*;
 use crate::models::user::User;
-use api_response::prelude::*;
 use bcrypt::{DEFAULT_COST, hash, verify};
 use im_codegen::bail;
 use im_common::jwt::{JwtClaims, SECRET_KEY};
@@ -43,7 +42,7 @@ pub async fn register(json: JsonBody<User>, depot: &mut Depot) -> ApiResponse<()
     // 将用户信息插入数据库
     User::insert(rb, &register_user).await.unwrap();
 
-    ().api_response_without_meta()
+    ().api_response()
 }
 
 /// 用户登录端点
@@ -98,5 +97,5 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
     //     .unwrap();
 
     // 返回包含 token 的响应
-    json!({ "token": token }).api_response_without_meta()
+    json!({ "token": token }).api_response()
 }
