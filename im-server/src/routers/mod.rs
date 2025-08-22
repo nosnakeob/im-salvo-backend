@@ -5,6 +5,7 @@ use salvo::prelude::*;
 
 mod auth;
 mod chat;
+mod user;
 
 #[endpoint]
 pub async fn index() -> ApiResponse<&'static str> {
@@ -23,7 +24,9 @@ pub fn root() -> Router {
         .push(
             Router::new()
                 .hoop(auth_hoop())
-                .push(Router::with_path("auth").push(Router::with_path("check").get(auth::check))),
+                .push(
+                    Router::with_path("user").push(Router::with_path("status").get(user::status)),
+                ),
         )
         .push(
             Router::with_path("chat")

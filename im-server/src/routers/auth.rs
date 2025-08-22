@@ -78,7 +78,7 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
     }
 
     // 创建 JWT 声明，设置 6 小时过期时间
-    let claim = JwtClaims::new(&user.username, Duration::hours(6));
+    let claim = JwtClaims::new(user.id.unwrap(), Duration::hours(6));
 
     // 生成 JWT token
     let token = jsonwebtoken::encode(
@@ -99,16 +99,4 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
 
     // 返回包含 token 的响应
     json!({ "token": token }).api_response_without_meta()
-}
-
-/// 检查用户认证状态
-///
-/// 此端点需要有效的 JWT token 才能访问
-/// 如果 token 有效，返回成功响应；否则返回 401 未授权
-///
-/// # 返回值
-/// 认证成功返回空响应
-#[endpoint]
-pub async fn check() -> ApiResponse<()> {
-    ().api_response_without_meta()
 }

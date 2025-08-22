@@ -114,25 +114,20 @@ async fn test_login_success() -> Result<()> {
     assert!(res.is_success());
 
     // 从响应中提取 JWT token
-    let token = res
-        .unwrap()
-        .data
-        .get("token")
-        .unwrap()
-        .as_str()
-        .unwrap()
-        .to_string();
+    let response_data = res.into_result_data()?;
+    let token = response_data.get("token").unwrap().as_str().unwrap();
 
-    // 使用 token 访问需要认证的端点
-    let res: ApiResponse<()> = TestClient::get(format!("http://{}/auth/check", CONFIG.listen_addr))
-        .add_header("Authorization", format!("Bearer {}", token), true)
-        .send(&service)
-        .await
-        .take_json()
-        .await?;
+    let res: ApiResponse<User> =
+        TestClient::get(format!("http://{}/user/status", CONFIG.listen_addr))
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .send(&service)
+            .await
+            .take_json()
+            .await?;
 
-    // 验证认证成功
-    assert!(res.is_success());
+    let user = res.unwrap().data;
+
+    assert_eq!(User::default().username, user.username);
 
     Ok(())
 }
@@ -207,7 +202,7 @@ async fn test_unauthorized_access() -> Result<()> {
     let service = build_salvo().await?;
 
     // 不提供认证信息，直接访问需要认证的端点
-    let res = TestClient::get(format!("http://{}/auth/check", CONFIG.listen_addr))
+    let res = TestClient::get(format!("http://{}/user/status", CONFIG.listen_addr))
         .send(&service)
         .await;
 

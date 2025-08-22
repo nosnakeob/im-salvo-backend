@@ -1,3 +1,4 @@
+use rbatis::rbdc::Uuid;
 use serde::{Deserialize, Serialize};
 use std::cell::LazyCell;
 use time::{Duration, OffsetDateTime};
@@ -11,14 +12,14 @@ pub const SECRET_KEY: LazyCell<String> = LazyCell::new(|| "secret".to_string());
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
-    pub username: String,
+    pub id: Uuid,
     pub exp: i64,
 }
 
 impl JwtClaims {
-    pub fn new(username: &str, duration: Duration) -> Self {
+    pub fn new(id: Uuid, duration: Duration) -> Self {
         JwtClaims {
-            username: username.to_string(),
+            id,
             exp: (OffsetDateTime::now_utc() + duration).unix_timestamp(),
         }
     }
