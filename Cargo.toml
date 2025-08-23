@@ -5,7 +5,6 @@ edition = "2024"
 
 [workspace]
 members = ["im-codegen", "im-common"]
-
 resolver = "2"
 
 [workspace.dependencies]
@@ -13,11 +12,11 @@ resolver = "2"
 im-codegen = { path = "im-codegen" }
 im-common = { path = "im-common" }
 
-# 异步模型
-tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "signal"] }
+# 异步运行时
+tokio = { version = "1.47", features = ["macros", "rt-multi-thread", "signal"] }
 
-# web框架
-salvo = { version = "0.80", features = [
+# Web 框架
+salvo = { version = "0.82", features = [
     "anyhow",
     "jwt-auth",
     "oapi",
@@ -27,72 +26,84 @@ salvo = { version = "0.80", features = [
     "test",
     "compression",
     "serve-static",
-    # "quinn"
 ] }
 
-# 数据库
+# 数据库和缓存
 redis = { version = "0.32", features = ["tokio-comp"] }
 deadpool-redis = { version = "0.22", features = ["serde", "rt_tokio_1"] }
 redis-macros = "0.5"
-
 rbs = "4.6"
 rbatis = "4.6"
-rbdc-pg = { version = "4.6", default-features = false, features = [
-    "tls-native-tls",
-] }
+rbdc-pg = { version = "4.6", default-features = false, features = ["tls-native-tls"] }
 
 # 序列化
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-derive-new = "0.7"
+# 错误处理
 anyhow = "1.0"
+
+# 日志
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = [
-    "std",
-    "fmt",
-    "env-filter",
-    "tracing-log",
-    "time",
-    "local-time",
-    "json",
-] }
-# qrcode = "0.14"
+tracing-subscriber = { version = "0.3", features = ["std", "fmt", "env-filter", "tracing-log", "time", "local-time", "json"] }
+tracing-appender = "0.2"
+
+# JWT 认证
+jsonwebtoken = "9.3"
+time = "0.3"
+
+# 工具库
+futures-util = "0.3"
+bcrypt = "0.17"
+rand = "0.9"
+derive-new = "0.7"
+
+# 配置管理
+figment = { version = "0.10", features = ["env", "toml"] }
+
+# 代码生成 (proc-macro)
+syn = { version = "2.0", features = ["full", "visit-mut", "visit"] }
+quote = "1.0"
 
 [dependencies]
+# 项目内部依赖
 im-codegen = { workspace = true }
 im-common = { workspace = true }
-# openchat_bot = { git = "https://github.com/nosnakeob/rust-openchat-bot.git" }
 
+# 异步运行时
 tokio = { workspace = true }
 
+# Web 框架
 salvo = { workspace = true }
 
+# 数据库和缓存
 redis = { workspace = true }
 deadpool-redis = { workspace = true }
 redis-macros = { workspace = true }
-
 rbs = { workspace = true }
 rbatis = { workspace = true }
 rbdc-pg = { workspace = true }
 
+# 序列化
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-derive-new = { workspace = true }
+# 错误处理和工具
 anyhow = { workspace = true }
+derive-new = { workspace = true }
+futures-util = { workspace = true }
+
+# 日志
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
-jsonwebtoken = "9.3"
-time = "0.3"
+# 认证和安全
+jsonwebtoken = { workspace = true }
+bcrypt = { workspace = true }
+time = { workspace = true }
 
-api-response = { version = "0.16.0", features = ["lite", "salvo"] }
-
-futures-util = "0.3"
-
-bcrypt = "0.17"
-rand = "0.9"
+# 工具库
+rand = { workspace = true }
 
 [[bin]]
 name = "ims"

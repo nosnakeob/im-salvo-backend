@@ -23,9 +23,6 @@ pub mod routers; // 路由处理器
 #[cfg(test)]
 pub mod test; // 测试模块
 
-// API 响应类型别名，简化响应类型定义
-type ApiResponse<T> = api_response::ApiResponse<T, ()>;
-
 /// 构建 Salvo 应用程序
 ///
 /// 初始化数据库连接、Redis 连接池和客户端，配置中间件
@@ -87,7 +84,7 @@ async fn main() -> Result<()> {
     let service = build_salvo().await?;
 
     // 创建 TCP 监听器并绑定到配置的地址
-    let acceptor = TcpListener::new(&config.listen_addr).bind().await;
+    let acceptor = TcpListener::new(config.listen_addr.clone()).bind().await;
     info!("服务器监听地址: {}", config.listen_addr);
 
     let server = Server::new(acceptor);
@@ -102,5 +99,6 @@ async fn main() -> Result<()> {
     server.serve(service).await;
 
     info!("服务器已停止");
+
     Ok(())
 }

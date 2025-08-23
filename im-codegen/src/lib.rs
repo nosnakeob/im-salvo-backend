@@ -3,13 +3,13 @@ extern crate quote;
 #[macro_use]
 extern crate syn;
 
-use crate::connection::_rb_conn;
+// use crate::connection::_rb_conn;
 use proc_macro::{TokenStream};
-use syn::{parse_quote, Expr, Fields, ItemFn, ItemStruct};
+use syn::{parse_quote, Expr, Fields, ItemStruct};
 
-mod connection;
-mod utils;
-mod visitor;
+// mod connection;
+// mod utils;
+// mod visitor;
 
 #[proc_macro]
 pub fn bail(input: TokenStream) -> TokenStream {
@@ -24,18 +24,18 @@ pub fn bail(input: TokenStream) -> TokenStream {
     new_fn.into()
 }
 
-#[proc_macro_attribute]
-pub fn rbatis_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let mut func = parse_macro_input!(item as ItemFn);
+// #[proc_macro_attribute]
+// pub fn rbatis_conn(_attr: TokenStream, item: TokenStream) -> TokenStream {
+//     let mut func = parse_macro_input!(item as ItemFn);
 
-    _rb_conn(&mut func);
+//     _rb_conn(&mut func);
 
-    let new_fn = quote!( #func );
+//     let new_fn = quote!( #func );
 
-    // eprintln!("new_fn: {}", new_fn);
+//     // eprintln!("new_fn: {}", new_fn);
 
-    new_fn.into()
-}
+//     new_fn.into()
+// }
 
 #[proc_macro_attribute]
 pub fn base_entity(_attr: TokenStream, item: TokenStream) -> TokenStream {
