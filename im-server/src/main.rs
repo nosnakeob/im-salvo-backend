@@ -7,7 +7,8 @@ extern crate tracing;
 
 use crate::hoops::cors_hoop;
 use anyhow::Result;
-use im_common::config;
+use im_common::config::CONFIG;
+use im_common::utils::docker::DockerManager;
 use rbatis::RBatis;
 use rbdc_pg::PgDriver;
 use redis::Client;
@@ -38,8 +39,7 @@ pub async fn build_salvo() -> Result<Service> {
 
     // 初始化数据库连接
     let rb = RBatis::new();
-    let config = config::init();
-    rb.link(PgDriver {}, &config.db.url).await?;
+    rb.link(PgDriver {}, &CONFIG.db.url).await?;
 
     // 构建服务，注入依赖并配置中间件
     Ok(Service::new(routers::root())
@@ -52,12 +52,6 @@ pub async fn build_salvo() -> Result<Service> {
         .hoop(Compression::default())) // 响应压缩
 }
 
-/// 优雅停机信号处理
-///
-/// 监听 Ctrl+C 信号，收到信号后优雅地停止服务器
-///
-/// # 参数
-/// * `handle` - 服务器句柄，用于控制服务器停止
 async fn shutdown_signal(handle: ServerHandle) {
     if tokio::signal::ctrl_c().await.is_ok() {
         info!("收到停机信号，正在优雅停止服务器...");
@@ -77,15 +71,16 @@ async fn main() -> Result<()> {
 
     info!("正在启动 IM Salvo 后端服务...");
 
-    // 加载配置
-    let config = config::init();
+    // 创建 Docker 管理器，自动启动 Docker 和 docker-compose 服务
+    // 当程序退出时会自动停止服务
+    let _docker_manager = DockerManager::new().await?;
 
     // 构建 Salvo 服务
     let service = build_salvo().await?;
 
     // 创建 TCP 监听器并绑定到配置的地址
-    let acceptor = TcpListener::new(config.listen_addr.clone()).bind().await;
-    info!("服务器监听地址: {}", config.listen_addr);
+    let acceptor = TcpListener::new(&CONFIG.listen_addr).bind().await;
+    info!("服务器监听地址: {}", CONFIG.listen_addr);
 
     let server = Server::new(acceptor);
 
@@ -93,12 +88,14 @@ async fn main() -> Result<()> {
     tokio::spawn(shutdown_signal(server.handle()));
 
     info!("服务器启动成功！");
-    info!("API 文档地址: http://{}/swagger-ui/", config.listen_addr);
+    info!("API 文档地址: http://{}/swagger-ui/", CONFIG.listen_addr);
 
     // 启动服务器并开始处理请求
     server.serve(service).await;
 
     info!("服务器已停止");
+
+    // _docker_manager 在这里离开作用域，自动执行 Drop，停止 docker-compose 服务
 
     Ok(())
 }

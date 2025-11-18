@@ -4,7 +4,7 @@ use crate::models::resp::*;
 use crate::models::user::User;
 use bcrypt::{DEFAULT_COST, hash, verify};
 use im_codegen::bail;
-use im_common::jwt::{JwtClaims, SECRET_KEY};
+use im_common::{config::CONFIG, jwt::JwtClaims};
 use jsonwebtoken::EncodingKey;
 use rbatis::RBatis;
 use salvo::oapi::extract::JsonBody;
@@ -83,7 +83,7 @@ pub async fn login(json: JsonBody<User>, depot: &Depot) -> ApiResponse<Value> {
     let token = jsonwebtoken::encode(
         &jsonwebtoken::Header::default(),
         &claim,
-        &EncodingKey::from_secret(SECRET_KEY.as_bytes()),
+        &EncodingKey::from_secret(CONFIG.jwt.secret.as_bytes()),
     )
     .unwrap();
 
