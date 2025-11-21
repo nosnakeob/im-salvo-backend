@@ -11,7 +11,3 @@ connection_timeout = 5000
 [jwt]
 secret = "yoursecret"
 expiry = 3600
-
-[log]
-file_name = "app.log"
-rolling = "daily"

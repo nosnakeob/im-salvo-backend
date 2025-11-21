@@ -3,8 +3,6 @@ use figment::providers::{Env, Format, Toml};
 use serde::Deserialize;
 use std::sync::LazyLock;
 
-mod log_config;
-pub use log_config::LogConfig;
 mod db_config;
 pub use db_config::DbConfig;
 mod redis_config;
@@ -37,38 +35,63 @@ pub fn init() -> ServerConfig {
     config
 }
 
+/// 服务器配置
 #[derive(Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct ServerConfig {
-    #[serde(default = "default_listen_addr")]
+    /// 监听地址
     pub listen_addr: String,
 
+    /// 数据库配置
     pub db: DbConfig,
-    pub log: LogConfig,
+
+    /// Redis 配置
     pub redis: RedisConfig,
+
+    /// JWT 配置
     pub jwt: JwtConfig,
+
+    /// TLS 配置（可选）
     pub tls: Option<TlsConfig>,
 }
 
+impl Default for ServerConfig {
+    fn default() -> Self {
+        Self {
+            listen_addr: "127.0.0.1:8008".into(),
+            db: DbConfig::default(),
+            redis: RedisConfig::default(),
+            jwt: JwtConfig::default(),
+            tls: None,
+        }
+    }
+}
+
+/// JWT 配置
 #[derive(Deserialize, Clone, Debug)]
 pub struct JwtConfig {
+    /// JWT 签名密钥
     pub secret: String,
+
+    /// 过期时间（秒）
     pub expiry: i64,
 }
+
+impl Default for JwtConfig {
+    fn default() -> Self {
+        Self {
+            secret: "your-secret-key".into(),
+            expiry: 3600,
+        }
+    }
+}
+
+/// TLS 配置
 #[derive(Deserialize, Clone, Debug)]
 pub struct TlsConfig {
+    /// 证书文件路径
     pub cert: String,
+
+    /// 私钥文件路径
     pub key: String,
-}
-
-#[allow(dead_code)]
-pub fn default_false() -> bool {
-    false
-}
-#[allow(dead_code)]
-pub fn default_true() -> bool {
-    true
-}
-
-fn default_listen_addr() -> String {
-    "127.0.0.1:8008".into()
 }

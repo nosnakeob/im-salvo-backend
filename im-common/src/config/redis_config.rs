@@ -1,39 +1,25 @@
 use serde::{Deserialize, Serialize};
 
-/// Redis configuration
+/// Redis 配置
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(default)]
 pub struct RedisConfig {
-    /// Redis connection URL
-    #[serde(default = "default_url")]
+    /// Redis 连接 URL
     pub url: String,
 
-    /// Connection pool size
-    #[serde(default = "default_pool_size")]
+    /// 连接池大小
     pub pool_size: u32,
 
-    /// Connection timeout in milliseconds
-    #[serde(default = "default_connection_timeout")]
+    /// 连接超时时间（毫秒）
     pub connection_timeout: u64,
-}
-
-fn default_url() -> String {
-    "redis://127.0.0.1:6379".into()
-}
-
-fn default_pool_size() -> u32 {
-    10
-}
-
-fn default_connection_timeout() -> u64 {
-    5000
 }
 
 impl Default for RedisConfig {
     fn default() -> Self {
         Self {
-            url: default_url(),
-            pool_size: default_pool_size(),
-            connection_timeout: default_connection_timeout(),
+            url: "redis://127.0.0.1:6379".into(),
+            pool_size: 10,
+            connection_timeout: 5000,
         }
     }
 }
